@@ -24,18 +24,28 @@
   input,select{font:inherit;font-size:13px;color:var(--ink-1);background:var(--surface-1);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
   input:focus,select:focus{outline:2px solid var(--accent)}
   .fx{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12.5px}
-  .fx input{width:70px;text-align:right}
+  .fx input{width:64px;text-align:right}
+  .fx input[readonly]{opacity:.9;cursor:default;border-color:transparent;background:var(--surface-2)}
+  .fxauto{font-size:10px;color:var(--muted);background:var(--surface-2);border-radius:5px;padding:1px 5px}
   .tabs{display:flex;gap:6px;margin:12px 0;flex-wrap:wrap;border-bottom:1px solid var(--grid);padding-bottom:10px}
   .tab{border:1px solid var(--border);background:var(--surface-1);color:var(--ink-2);border-radius:999px;padding:7px 15px;font-size:13.5px;cursor:pointer}
   .tab.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
   .page{display:none}.page.on{display:block}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
   .tile{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
-  .tile .label{color:var(--ink-2);font-size:12px}
+  .tile .label{color:var(--ink-2);font-size:12px;display:flex;align-items:center;gap:6px}
+  .tileIcon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;font-size:13px;line-height:1;flex:none}
   .tile .value{font-size:19px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
   .tile .note{color:var(--muted);font-size:11.5px;margin-top:2px}
   .tile.hero{grid-column:1/-1;background:linear-gradient(135deg,rgba(57,135,229,.12),transparent)}
   .tile.hero .value{font-size:30px}
+  .subgrid{display:grid;gap:10px;grid-column:1/-1}
+  .subgrid.two{grid-template-columns:repeat(2,1fr)}
+  .subgrid.four{grid-template-columns:repeat(4,1fr)}
+  .subgrid.six{grid-template-columns:repeat(3,1fr)}
+  .tile.t2{background:linear-gradient(135deg,rgba(57,135,229,.06),transparent)}
+  .tile.t2 .value{font-size:23px}
+  @media(max-width:720px){.subgrid.six{grid-template-columns:repeat(2,1fr)}.subgrid.four{grid-template-columns:repeat(2,1fr)}.subgrid.two{grid-template-columns:1fr}}
   .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
   @media(max-width:860px){.cards{grid-template-columns:1fr}}
   .card{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:14px;min-width:0}
@@ -81,6 +91,24 @@
   .guide p{color:var(--ink-2);font-size:13.5px;margin:8px 0}.guide b{color:var(--ink-1)}
   .guide .gnote{color:var(--muted);font-size:12px;font-style:italic}
   .wlink{font-size:11.5px;color:var(--accent);text-decoration:none;margin-right:8px}.wlink:hover{text-decoration:underline}
+  .chart-cap{font-size:12px;color:var(--ink-2);font-weight:600;margin:2px 0 8px}
+  .statHelp{margin-top:4px;font-size:12px}
+  .statHelp summary{cursor:pointer;color:var(--accent);font-weight:600}
+  .statHelp ul{margin:8px 0 0;padding-left:16px;color:var(--ink-2);line-height:1.7}
+  .guru-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
+  .guru-card{background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column}
+  .guru-nm{font-weight:700;font-size:14px}
+  .guru-f{font-size:11px;color:var(--muted);margin-top:1px}
+  .guru-s{font-size:11px;color:var(--accent);margin:6px 0 8px}
+  .guru-mv{font-size:11.5px;margin-bottom:6px}
+  .guru-mv b{font-size:11px}
+  .guru-mv ul{margin:3px 0 0;padding-left:16px;color:var(--ink-2);line-height:1.55}
+  .guru-link{margin-top:auto;font-size:11.5px;color:var(--accent);text-decoration:none;padding-top:6px}
+  .guru-link:hover{text-decoration:underline}
+  .zone{font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap;font-weight:600}
+  .zone.lo{background:var(--win-soft);color:var(--good-text)}
+  .zone.hi{background:var(--loss-soft);color:var(--bad-text)}
+  .zone.mid{background:var(--surface-2);color:var(--ink-2)}
   .barpct{display:grid;grid-template-columns:120px 1fr 92px;align-items:center;gap:8px;margin:6px 0;font-size:12.5px}
   .barpct .nm{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .track{background:var(--chip-bg);border-radius:4px;height:14px;position:relative}
@@ -103,7 +131,7 @@
     <h1>💼 ศูนย์การเงินส่วนบุคคล</h1>
     <span class="badge" id="owner">KORN</span>
     <div class="toolbar">
-      <span class="fx">USD/THB <input id="fx" type="number" step="0.01" value="33.62"></span>
+      <span class="fx" title="อัปเดตอัตโนมัติจาก Google Sheet (GOOGLEFINANCE) — ไม่ต้องกรอกเอง">USD/THB <input id="fx" type="number" step="0.01" value="33.62" readonly><span class="fxauto">☁️ auto</span></span>
       <button id="btnCloud" title="เชื่อม Google Sheet — สำรองข้อมูล + ดึงราคาสดอัตโนมัติ">☁️ Sheet</button>
       <button id="btnExport">⬇ Export</button>
       <button id="btnImport">⬆ Import</button>
@@ -115,9 +143,9 @@
   <nav class="tabs">
     <button class="tab on" data-tab="wealth">🏆 ความมั่งคั่ง</button>
     <button class="tab" data-tab="port">📊 พอร์ตลงทุน</button>
-    <button class="tab" data-tab="journal">📈 Trading Journal</button>
+    <button class="tab" data-tab="journal">👁️ Trading Watchlist</button>
     <button class="tab" data-tab="budget">💸 รายรับ-รายจ่าย</button>
-    <button class="tab" data-tab="prop">🏠 ทรัพย์สิน</button>
+    <button class="tab" data-tab="prop">🏠 สินทรัพย์</button>
     <button class="tab" data-tab="guide">📖 คู่มือ</button>
   </nav>
 
@@ -148,76 +176,36 @@
 
   <!-- ===== พอร์ตลงทุน ===== -->
   <section class="page" id="pg-port">
-    <div class="card section-card" style="padding:10px 14px">
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px">
-        <b>🔗 ราคาหุ้นอัตโนมัติจาก Google Sheet</b>
-        <button class="mini primary" id="btnLive">🔄 รีเฟรชราคาสด</button>
-        <input id="feedUrl" placeholder="(ทางเลือก) URL แท็บ FEED จาก Google Sheet" style="flex:1;min-width:180px">
-        <button class="mini" id="btnConnect">เชื่อม Sheet</button>
-        <span id="feedStatus" style="color:var(--muted)">กด "รีเฟรชราคาสด" เพื่อดึงราคา+ค่าเงินตอนนี้</span>
-      </div>
-    </div>
-    <div class="tiles" id="pTiles"></div>
     <div class="card section-card">
-      <h2>💰 สรุปต้นทุน-ผลตอบแทน <span class="tag">· ต่อปี (ประมาณการ) · ปันผลผมหาให้ ไม่ต้องกรอก</span></h2>
-      <div class="tiles" id="costTiles" style="margin:0"></div>
+      <h2>💰 สรุปต้นทุน-ผลตอบแทน <span class="tag">· ราคาสดจาก ☁️ Google Sheet · ปันผลผมหาให้</span></h2>
+      <div class="subgrid" id="costTiles"></div>
     </div>
     <div class="card section-card">
-      <h2>สินทรัพย์รายชนิด (บาท) <span class="tag">· กบข. / สหกรณ์ / ทอง — มูลค่าปัจจุบัน & เงินต้นสะสม (เงินสดไปอยู่ในรายรับ-รายจ่าย)</span></h2>
+      <h2>💠 มูลค่าตามชนิด/กลุ่ม <span class="tag">· กบข. / สหกรณ์ / ทอง เพิ่ม-ลดได้ · หุ้นแยกตามกลุ่ม</span></h2>
       <div class="table-scroll"><table id="assetTbl"></table></div>
+      <div id="grpChart" style="margin-top:12px"></div>
     </div>
     <div class="card section-card">
-      <h2>หุ้น/ETF ที่ถืออยู่ <span class="tag">· คำนวณจากบันทึกซื้อ-ขาย · ต้นทุนเฉลี่ย+realized อัตโนมัติ</span>
+      <h2>📈 หุ้น/ETF รายตัว <span class="tag">· ต้นทุนเฉลี่ย + กำไร/ขาดทุน อัตโนมัติ</span>
         <button class="mini primary" id="btnAddHold" style="float:right">+ บันทึกซื้อ/ขาย</button></h2>
       <div class="table-scroll"><table id="tblHold"></table></div>
-    </div>
-    <div class="card section-card">
-      <h2>บันทึกการซื้อ-ขาย <span class="tag">· รายการที่คุณกดบันทึกเอง (มี FX ตอนเทรด + ค่าธรรมเนียม)</span></h2>
-      <div class="table-scroll"><table id="stxTbl"></table></div>
-    </div>
-    <div class="cards">
-      <div class="card"><h2>กำไร/ขาดทุนรายตัว <span class="tag">· บาท</span></h2><div id="gainChart"></div></div>
-      <div class="card"><h2>มูลค่าตามกลุ่ม/ชนิด <span class="tag">· บาท</span></h2><div id="grpChart"></div></div>
+      <div id="gainChart" style="margin-top:12px"></div>
+      <p class="gnote" style="margin-top:8px">รายการซื้อ-ขายทั้งหมดถูกบันทึก & ซิงค์ขึ้น Google Sheet (แท็บ STATE) — ดูรายละเอียดย้อนหลังได้ในชีต</p>
     </div>
   </section>
 
-  <!-- ===== Trading Journal ===== -->
+  <!-- ===== Trading Watchlist ===== -->
   <section class="page" id="pg-journal">
-    <div class="card section-card" style="padding:10px 14px">
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px">
-        <button class="mini primary" id="btnJLive">🔄 รีเฟรชราคาสด</button>
-        <input id="jFeedUrl" placeholder="(ทางเลือก) URL Sheet: sym,price,pe,high52,low52,yield" style="flex:1;min-width:180px">
-        <button class="mini" id="btnJConnect">เชื่อม Sheet (ได้ P/E)</button>
-        <span id="jFeedStatus" style="color:var(--muted)">รีเฟรชสดได้ราคา · P/E ต้องต่อ Sheet</span>
-      </div>
-    </div>
-    <div class="tiles" id="jTiles"></div>
-    <div class="cards">
-      <div class="card"><h2>Equity Curve <span class="tag">· กำไรสะสม realized (USD)</span></h2><div id="eqChart"></div></div>
-      <div class="card">
-        <div class="cal-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><button id="calPrev">‹</button><b id="calTitle" style="font-size:13px"></b><button id="calNext">›</button></div>
-        <div class="cal-grid" id="calGrid"></div>
-      </div>
-    </div>
-    <div class="cards">
-      <div class="card"><h2>P&L รายหุ้น <span class="tag">· realized</span></h2><div id="symBreak"></div></div>
-      <div class="card"><h2>สถิติแยกประเภท <span class="tag">· หุ้น vs Options · Long vs Short</span></h2><div id="sideStats"></div></div>
+    <div class="card section-card">
+      <h2>🌍 นักลงทุนระดับโลกกำลังทำอะไร <span class="tag">· ความเคลื่อนไหวพอร์ตล่าสุด (13F ไตรมาส Q1 2026)</span></h2>
+      <div class="guru-grid" id="guruGrid"></div>
+      <p class="gnote" style="margin-top:8px">ข้อมูลจากรายงาน 13F ที่กองทุนต้องเปิดเผยทุกไตรมาส (ยื่นช้ากว่าจริง ~45 วัน) — ใช้ดู "ทิศทาง" ว่ารายใหญ่มองอะไร <b>ไม่ใช่คำแนะนำให้ทำตาม</b> · กด <b>ดูพอร์ตสด</b> ที่แต่ละการ์ดเพื่อเช็กล่าสุด</p>
     </div>
     <div class="card section-card">
-      <h2>⭐ Watchlist — กระดานหุ้นที่สนใจ <span class="tag">· ราคา/PE/52wk จาก Sheet · วันงบ/XD/เป้า กรอกเอง</span>
+      <h2>⭐ รายชื่อที่จับตา — ข้อมูลพิจารณาซื้อ/ขาย <span class="tag">· ราคา/PE/52wk ซิงค์จาก ☁️ Sheet</span>
         <button class="mini" id="btnAddWatch" style="float:right">+ เพิ่มหุ้น</button></h2>
       <div class="table-scroll"><table id="watchTbl"></table></div>
-      <p class="gnote" style="margin-top:6px">💡 P/E ต่ำ + ราคาใกล้ Low52 = อาจถูก · P/E สูง + ใกล้ High52 = อาจแพง/ร้อน — เป็นข้อมูลประกอบ ไม่ใช่สัญญาณซื้อ</p>
-    </div>
-    <div class="cards">
-      <div class="card"><h2>🗓️ วันสำคัญข้างหน้า <span class="tag">· งบ / ขึ้น XD</span></h2><div id="calList"></div></div>
-      <div class="card"><h2>Insights</h2><ul class="insights" id="jInsights"></ul></div>
-    </div>
-    <div class="card section-card">
-      <h2>Trade Log <span class="tag">· บันทึกการเทรดจริง</span>
-        <button class="mini primary" id="btnLog" style="float:right">+ Log a trade</button></h2>
-      <div class="filters" id="jFilters"></div>
-      <div class="table-scroll"><table id="tblTrades"></table></div>
+      <p class="gnote" style="margin-top:6px">💡 "สัญญาณ" คำนวณจากตำแหน่งราคาในกรอบ 52 สัปดาห์ + P/E เทียบเป้า (เขียว=ช่วงล่างอาจน่าสะสม · แดง=ใกล้จุดสูงระวังไล่ราคา) — <b>ข้อมูลประกอบ ไม่ใช่คำแนะนำซื้อขาย</b> · ช่อง "มุมมอง/แผน" พิมพ์เองได้ เช่น "รอย่อ &lt;150 ค่อยเก็บ" · P/E, High52, Low52 แก้เองได้ถ้ายังไม่ซิงค์</p>
     </div>
   </section>
 
@@ -247,31 +235,30 @@
     </div>
     <div class="tiles" id="bTiles"></div>
     <div class="cards">
-      <div class="card"><h2>รายจ่ายตามหมวด <span class="tag">· รอบนี้</span></h2><div id="catChart"></div></div>
-      <div class="card"><h2>จ่ายด้วยอะไร <span class="tag">· รอบนี้</span></h2><div id="methodChart"></div></div>
-    </div>
-    <div class="card section-card"><h2>รายการรอบนี้ <span class="tag">· ล่าสุดอยู่บน</span></h2><div class="table-scroll"><table id="tblTx"></table></div></div>
-    <div class="cards">
       <div class="card">
-        <h2>เงินเดือนไหลไปไหน (รอบนี้)</h2><div id="waterfall"></div>
+        <h2>🍩 เดือนนี้จ่ายไปกับอะไร <span class="tag">· แยกตามหมวด · รอบนี้</span></h2>
+        <div id="catDonut" style="display:flex;justify-content:center"></div>
+        <div class="legend" id="catLegend"></div>
       </div>
       <div class="card">
-        <h2>เทียบหลายรอบ</h2>
+        <h2>📊 ย้อนหลังหลายรอบ <span class="tag">· จ่ายแต่ละหมวดเป็นยังไง (หมวดสีเดียวกัน)</span></h2>
         <div class="rangebar" id="bRange"></div>
         <div id="mBarChart"></div><div class="legend" id="mBarLegend"></div>
       </div>
     </div>
+    <div class="cards">
+      <div class="card"><h2>จ่ายด้วยอะไร <span class="tag">· วิธีจ่าย · รอบนี้</span></h2><div id="methodChart"></div></div>
+      <div class="card"><h2>รายการรอบนี้ <span class="tag">· ล่าสุดอยู่บน</span></h2><div class="table-scroll" style="max-height:320px"><table id="tblTx"></table></div></div>
+    </div>
   </section>
 
-  <!-- ===== ทรัพย์สิน ===== -->
+  <!-- ===== สินทรัพย์ ===== -->
   <section class="page" id="pg-prop">
-    <div class="hint">ทรัพย์สินชิ้นใหญ่ที่นับเป็น "สินทรัพย์" ในความมั่งคั่ง — บ้าน คอนโด ที่ดิน รถ · ถ้ายังผ่อนอยู่ ใส่ยอดหนี้คงเหลือด้วย ระบบจะคิด "ส่วนของเรา" = มูลค่า − หนี้ ให้อัตโนมัติ (ตีเป็นสินทรัพย์ได้แม้ยังผ่อน)</div>
     <div class="tiles" id="propTiles"></div>
     <div class="card section-card">
-      <h2>รายการทรัพย์สิน <span class="tag">· มูลค่า − หนี้คงเหลือ = ส่วนของเรา (นับเข้าความมั่งคั่ง)</span>
-        <button class="mini" id="btnAddProp" style="float:right">+ เพิ่มทรัพย์สิน</button></h2>
+      <h2>🏠 รายการสินทรัพย์
+        <button class="mini" id="btnAddProp" style="float:right">+ เพิ่มสินทรัพย์</button></h2>
       <div class="table-scroll"><table id="propTbl"></table></div>
-      <p class="gnote" style="margin-top:6px">อสังหามักคงมูลค่า/ขึ้น · รถมักเสื่อมราคา — อัพเดทมูลค่าประเมินเป็นระยะ · ยอดผ่อนต่อเดือนของหนี้ก้อนนี้ใส่ในแท็บรายรับ-รายจ่ายเพื่อคิด DTI</p>
     </div>
   </section>
 
@@ -300,7 +287,7 @@
   <div class="form-actions"><button value="cancel" formnovalidate>ยกเลิก</button><button class="primary" value="save">บันทึก</button></div>
 </form></dialog>
 
-<dialog id="dlgProp"><h2 style="margin:0 0 12px;font-size:16px">เพิ่มทรัพย์สิน</h2><form id="frmProp" method="dialog">
+<dialog id="dlgProp"><h2 style="margin:0 0 12px;font-size:16px">เพิ่มสินทรัพย์</h2><form id="frmProp" method="dialog">
   <div class="form-grid">
     <label>ชื่อ <input name="name" required placeholder="คอนโด / รถ / ที่ดิน"></label>
     <label>ประเภท <select name="type"><option>อสังหาริมทรัพย์</option><option>ยานพาหนะ</option><option>อื่นๆ</option></select></label>
@@ -311,21 +298,6 @@
   <div class="form-actions"><button value="cancel" formnovalidate>ยกเลิก</button><button class="primary" value="save">บันทึก</button></div>
 </form></dialog>
 
-<dialog id="dlg"><h2 style="margin:0 0 12px;font-size:16px">Log a trade</h2><form id="frm" method="dialog">
-  <div class="form-grid">
-    <label>วันที่เข้า <input name="date" type="date" required></label>
-    <label>สัญลักษณ์ <input name="symbol" required style="text-transform:uppercase"></label>
-    <label>ประเภท <select name="type" id="fType"><option value="stock">หุ้น</option><option value="option">Option</option></select></label>
-    <label>ฝั่ง <select name="side"><option value="long">Long/Buy</option><option value="short">Short/Sell</option></select></label>
-    <label id="lblQty">จำนวน <input name="qty" type="number" step="any" min="0" required></label>
-    <label id="lblEntry">ราคาเข้า <input name="entry" type="number" step="any" min="0" required></label>
-    <label id="lblExit">ราคาออก (ว่าง=ยังถือ) <input name="exit" type="number" step="any" min="0"></label>
-    <label>ค่าธรรมเนียม <input name="fees" type="number" step="any" min="0" value="0"></label>
-    <label class="full" id="optRow" style="display:none">รายละเอียด Option <input name="optDetail" placeholder="190C exp 21/8/2026"></label>
-    <label class="full">โน้ต/เหตุผล <input name="note"></label>
-  </div>
-  <div class="form-actions"><button value="cancel" formnovalidate>ยกเลิก</button><button class="primary" value="save">บันทึก</button></div>
-</form></dialog>
 
 <dialog id="dlgCloud"><h2 style="margin:0 0 4px;font-size:16px">☁️ เชื่อม Google Sheet (สำรอง + ราคาสด)</h2>
   <p style="margin:0 0 12px;font-size:12px;color:var(--muted);line-height:1.55">
@@ -388,8 +360,16 @@ const DEFAULT_APP = {
     {id:'s11',date:'2026-05-12',action:'buy',sym:'KO',ccy:'USD',shares:11,price:58,fxTrade:33.6,fees:0.3,note:'จาก Foundation'}
   ],
   watch:[
-    {id:'w1',sym:'AVGO',ccy:'USD',note:'ชิป AI นอกจาก NVDA',target:'',earn:'',xd:'',price:0,pe:0,high52:0,low52:0,yield:0},
-    {id:'w2',sym:'COST',ccy:'USD',note:'defensive คุณภาพสูง',target:'',earn:'',xd:'',price:0,pe:0,high52:0,low52:0,yield:0}
+    {id:'w1',sym:'NVDA',ccy:'USD',plan:'',target:'',price:206.84,pe:31.68,high52:236.54,low52:164.07,yield:0.48},
+    {id:'w2',sym:'MSFT',ccy:'USD',plan:'',target:'',price:381.70,pe:22.73,high52:555.45,low52:349.20,yield:0.95},
+    {id:'w3',sym:'GOOGL',ccy:'USD',plan:'',target:'',price:335.84,pe:33.14,high52:340.49,low52:140.53,yield:0.25},
+    {id:'w4',sym:'AMZN',ccy:'USD',plan:'',target:'',price:232.11,pe:27.76,high52:278.56,low52:196.00,yield:0},
+    {id:'w5',sym:'META',ccy:'USD',plan:'',target:'',price:595.19,pe:21.65,high52:796.25,low52:520.26,yield:0.35},
+    {id:'w6',sym:'AVGO',ccy:'USD',plan:'ชิป AI นอกจาก NVDA',target:'',price:381.92,pe:63.56,high52:495.00,low52:281.61,yield:0.68},
+    {id:'w7',sym:'UBER',ccy:'USD',plan:'Tepper/Gerstner เก็บเพิ่ม',target:'',price:65.94,pe:16.30,high52:101.99,low52:65.56,yield:0},
+    {id:'w8',sym:'PLTR',ccy:'USD',plan:'โตแรงแต่ P/E สูงมาก',target:'',price:122.92,pe:138.18,high52:207.52,low52:106.37,yield:0},
+    {id:'w9',sym:'COST',ccy:'USD',plan:'defensive คุณภาพสูง',target:'',price:935.03,pe:47.03,high52:1096.50,low52:844.06,yield:0.63},
+    {id:'w10',sym:'TSLA',ccy:'USD',plan:'Cathie Wood ถือหนัก · ผันผวนสูง',target:'',price:313.03,pe:289.97,high52:498.83,low52:297.82,yield:0}
   ],
   trades:[
     {id:1,date:'2026-04-06',closeDate:'2026-04-24',symbol:'META',type:'stock',side:'long',qty:0.25,entry:612,exit:641.5,fees:.3,note:'เข้าก่อนงบ'},
@@ -502,17 +482,21 @@ function renderWealth(){
   const prevNet=hist.length>=2?hist[hist.length-2].net:w.net;
   const mGain=w.net-prevNet;
   const types=[
-    {k:'กบข.',v:APP.gbx.value,g:APP.gbx.value-APP.gbx.cost,c:css('--violet')},
-    {k:'สหกรณ์',v:APP.coop.value,g:APP.coop.value-APP.coop.cost,c:css('--aqua')},
-    {k:'ทอง',v:APP.gold.value,g:APP.gold.value-APP.gold.cost,c:css('--gold')},
-    {k:'หุ้น',v:w.stocks,g:w.stocksGain,c:css('--accent')},
-    {k:'เงินสด',v:w.cash,g:null,c:css('--muted')},
-    {k:'ทรัพย์สิน',v:propEquity(),g:null,c:css('--win')}
+    {k:'กบข.',ic:'🏛️',v:APP.gbx.value,g:APP.gbx.value-APP.gbx.cost,c:css('--violet')},
+    {k:'สหกรณ์',ic:'🤝',v:APP.coop.value,g:APP.coop.value-APP.coop.cost,c:css('--aqua')},
+    {k:'ทอง',ic:'🥇',v:APP.gold.value,g:APP.gold.value-APP.gold.cost,c:css('--gold')},
+    {k:'หุ้น',ic:'📊',v:w.stocks,g:w.stocksGain,c:css('--accent')},
+    {k:'เงินสด',ic:'💵',v:w.cash,g:null,c:css('--muted')},
+    {k:'สินทรัพย์',ic:'🏠',v:propEquity(),g:null,c:css('--win')}
   ];
-  let html=`<div class="tile hero"><div class="label">ความมั่งคั่งสุทธิ</div><div class="value">${fmt(w.net)} บ.</div><div class="note">ทุกสินทรัพย์ + เงินสด + ส่วนของทรัพย์สิน − หนี้</div></div>
-    <div class="tile"><div class="label">กำไรรวมจากเงินต้น</div><div class="value" style="color:${w.gain>=0?'var(--good-text)':'var(--bad-text)'}">${w.gain>=0?'+':'−'}${fmt(Math.abs(w.gain))} บ.</div><div class="note">มูลค่าปัจจุบัน − เงินที่ใส่เอง</div></div>
-    <div class="tile"><div class="label">เปลี่ยนแปลงเดือนล่าสุด</div><div class="value" style="color:${mGain>=0?'var(--good-text)':'var(--bad-text)'}">${mGain>=0?'▲ +':'▼ −'}${fmt(Math.abs(mGain))}</div><div class="note">เทียบจุดบันทึกก่อนหน้า</div></div>`;
-  types.forEach(t=>{html+=`<div class="tile"><div class="label"><span class="dot" style="background:${t.c}"></span> ${t.k}</div><div class="value">${fmt(t.v)}</div><div class="note">${t.g==null?'ยอดคงเหลือ':(t.g>=0?'กำไร +':'ขาดทุน −')+fmt(Math.abs(t.g))+' บ.'}</div></div>`;});
+  let html=`<div class="tile hero"><div class="label">🏆 ความมั่งคั่งสุทธิ</div><div class="value">${fmt(w.net)} บ.</div><div class="note">ทุกสินทรัพย์ + เงินสด + ส่วนของสินทรัพย์ − หนี้</div></div>
+    <div class="subgrid two">
+      <div class="tile t2"><div class="label">📈 กำไรรวมจากเงินต้น</div><div class="value" style="color:${w.gain>=0?'var(--good-text)':'var(--bad-text)'}">${w.gain>=0?'+':'−'}${fmt(Math.abs(w.gain))} บ.</div><div class="note">มูลค่าปัจจุบัน − เงินที่ใส่เอง</div></div>
+      <div class="tile t2"><div class="label">🗓️ เปลี่ยนแปลงเดือนล่าสุด</div><div class="value" style="color:${mGain>=0?'var(--good-text)':'var(--bad-text)'}">${mGain>=0?'▲ +':'▼ −'}${fmt(Math.abs(mGain))}</div><div class="note">เทียบจุดบันทึกก่อนหน้า</div></div>
+    </div>
+    <div class="subgrid six">`;
+  types.forEach(t=>{html+=`<div class="tile"><div class="label"><span class="tileIcon" style="background:${t.c}22;border:1px solid ${t.c}55">${t.ic}</span> ${t.k}</div><div class="value">${fmt(t.v)}</div><div class="note">${t.g==null?'ยอดคงเหลือ':(t.g>=0?'กำไร +':'ขาดทุน −')+fmt(Math.abs(t.g))+' บ.'}</div></div>`;});
+  html+=`</div>`;
   $('wTiles').innerHTML=html;
   // range bar
   $('wRange').innerHTML=RANGES.map(([k,l])=>`<span class="rb ${wRange===k?'on':''}" data-r="${k}">${l}</span>`).join('');
@@ -620,26 +604,35 @@ function renderPort(){
   const w=wealth();const HOLD=computeHoldings();const open=HOLD.filter(h=>h.shares>0);
   const divY=sum(open.map(h=>h.valueTHB*(h.div||0)/100));
   const realTotal=stocksReal();
-  $('pTiles').innerHTML=`
-    <div class="tile"><div class="label">มูลค่าลงทุนรวม</div><div class="value">${fmt(w.inv)} บ.</div><div class="note">กบข.+สหกรณ์+ทอง+หุ้น</div></div>
-    <div class="tile"><div class="label">หุ้น/ETF</div><div class="value">${fmt(w.stocks)} บ.</div><div class="note">${open.length} ตัวที่ถืออยู่</div></div>
-    <div class="tile"><div class="label">กำไรหุ้น (unrealized)</div><div class="value" style="color:${w.stocksGain>=0?'var(--good-text)':'var(--bad-text)'}">${w.stocksGain>=0?'+':'−'}${fmt(Math.abs(w.stocksGain))}</div><div class="note">${pct(w.stocksGain,stocksCost()).toFixed(1)}% จากต้นทุน</div></div>
-    <div class="tile"><div class="label">กำไรที่ขายแล้ว (realized)</div><div class="value" style="color:${realTotal>=0?'var(--good-text)':'var(--bad-text)'}">${realTotal>=0?'+':'−'}${fmt(Math.abs(realTotal))} บ.</div><div class="note">จากการขายจริง</div></div>`;
+  // ---- ยอดรวมพอร์ต ----
+  const totalVal=w.inv;                                   // มูลค่ารวมปัจจุบัน (กบข+สหกรณ์+ทอง+หุ้น)
+  const totalCost=(APP.gbx.cost||0)+(APP.coop.cost||0)+(APP.gold.cost||0)+stocksCost();
+  const totalGain=totalVal-totalCost;
+  // กำไรจากค่าเงิน = ส่วนต่าง FX ของหุ้น USD = costNat×fxNow − costTHB
+  const fxGain=sum(open.filter(h=>h.ccy==='USD').map(h=>{const costNat=h.avgNat*h.shares;return costNat*APP.fx-h.costTHB;}));
+  const priceGain=totalGain-fxGain;                      // กำไรจากราคา
+  const yr=String(new Date().getFullYear());
+  const interest=sum(APP.tx.filter(t=>t.type==='income'&&t.cat==='ดอกเบี้ยเงินฝาก'&&t.date.startsWith(yr)).map(t=>t.amount));
+  const feeStockTHB=sum(APP.stockTx.map(t=>(t.fees||0)*(((t.ccy||'USD')==='USD')?(t.fxTrade||APP.fx):1)));
+  const divTax=divY*0.15;
+  const S=(lbl,val,color,note)=>`<div class="tile"><div class="label">${lbl}</div><div class="value"${color?` style="color:${color}"`:''}>${val}</div>${note?`<div class="note">${note}</div>`:''}</div>`;
+  $('costTiles').innerHTML=`
+    <div class="subgrid four">
+      ${S('มูลค่ารวมปัจจุบัน',fmt(totalVal)+' บ.','','กบข.+สหกรณ์+ทอง+หุ้น')}
+      ${S('ต้นทุนรวม',fmt(totalCost)+' บ.','var(--muted)','เงินต้นที่ใส่ไปทั้งหมด')}
+      ${S('กำไร (จากราคา)',(priceGain>=0?'+':'−')+fmt(Math.abs(priceGain))+' บ.',priceGain>=0?'var(--good-text)':'var(--bad-text)',pct(priceGain,totalCost).toFixed(1)+'% จากต้นทุน')}
+      ${S('💧 ปันผลที่คาดหวัง/ปี',fmt(divY)+' บ.','var(--aqua)','~'+fmt(divY/12)+'/เดือน')}
+    </div>
+    <div class="subgrid four">
+      ${S('กำไรจากค่าเงิน',(fxGain>=0?'+':'−')+fmt(Math.abs(fxGain))+' บ.',fxGain>=0?'var(--good-text)':'var(--bad-text)','FX ตอนซื้อ → ตอนนี้ '+APP.fx)}
+      ${S('ดอกเบี้ยรับปีนี้',fmt(interest)+' บ.','var(--good-text)','บันทึกในรายรับ-รายจ่าย')}
+      ${S('ภาษีปันผล (ประมาณ)','−'+fmt(divTax)+' บ.','var(--bad-text)','หัก ณ ที่จ่าย US 15%')}
+      ${S('ค่าธรรมเนียมซื้อขายหุ้น','−'+fmt(feeStockTHB)+' บ.','var(--bad-text)','รวมจากบันทึกซื้อ-ขาย')}
+    </div>`;
   const A=[['gbx','กบข. (My GPF)'],['coop','สหกรณ์ออมทรัพย์ ทช.'],['gold','ทอง MTS-GOLD']];
   let ah=`<tr><th>ชนิด</th><th class="r">มูลค่าปัจจุบัน (บ.)</th><th class="r">เงินต้นสะสม (บ.)</th><th class="r">กำไร</th><th>โน้ต</th><th>เติม/ถอน</th></tr>`;
   A.forEach(([k,nm])=>{const o=APP[k],g=o.value-o.cost;ah+=`<tr><td><b>${nm}</b></td><td class="r" contenteditable data-ast="${k}" data-f="value">${fmt(o.value)}</td><td class="r" contenteditable data-ast="${k}" data-f="cost">${fmt(o.cost)}</td><td class="r ${g>=0?'pos':'neg'}">${g>=0?'+':'−'}${fmt(Math.abs(g))}</td><td contenteditable data-ast="${k}" data-f="note" style="color:var(--muted)">${o.note||''}</td><td><button class="mini" data-astadd="${k}">+ เติม</button></td></tr>`;});
   $('assetTbl').innerHTML=ah;
-  // สรุปต้นทุน-ผลตอบแทน
-  const feeStockUSD=sum(APP.stockTx.map(t=>t.fees||0));const feeTradeUSD=sum(APP.trades.map(t=>t.fees||0));
-  const yr=String(new Date().getFullYear());
-  const interest=sum(APP.tx.filter(t=>t.type==='income'&&t.cat==='ดอกเบี้ยเงินฝาก'&&t.date.startsWith(yr)).map(t=>t.amount));
-  const divRecv=sum(APP.tx.filter(t=>t.type==='income'&&t.cat==='ปันผลหุ้น'&&t.date.startsWith(yr)).map(t=>t.amount));
-  $('costTiles').innerHTML=`
-    <div class="tile"><div class="label">💧 ปันผลคาดหวัง/ปี</div><div class="value" style="color:var(--aqua)">${fmt(divY)} บ.</div><div class="note">อัตราปันผล × มูลค่า (~${fmt(divY/12)}/เดือน)</div></div>
-    <div class="tile"><div class="label">ภาษีปันผลโดยประมาณ</div><div class="value" style="color:var(--bad-text)">−${fmt(divY*0.15)} บ.</div><div class="note">หัก ณ ที่จ่าย US 15%</div></div>
-    <div class="tile"><div class="label">ปันผลรับจริงปีนี้</div><div class="value" style="color:var(--good-text)">${fmt(divRecv)} บ.</div><div class="note">จากที่บันทึกในรายรับ-รายจ่าย</div></div>
-    <div class="tile"><div class="label">ดอกเบี้ยเงินฝากปีนี้</div><div class="value" style="color:var(--good-text)">${fmt(interest)} บ.</div><div class="note">หมวด "ดอกเบี้ยเงินฝาก"</div></div>
-    <div class="tile"><div class="label">ค่าธรรมเนียมสะสม</div><div class="value" style="color:var(--bad-text)">−${fmt((feeStockUSD+feeTradeUSD)*APP.fx)} บ.</div><div class="note">ซื้อขายหุ้น+Journal ($${(feeStockUSD+feeTradeUSD).toFixed(1)})</div></div>`;
   // holdings (derived)
   let hh=`<tr><th>หุ้น</th><th>กลุ่ม</th><th class="r">จำนวน</th><th class="r">ต้นทุนเฉลี่ย</th><th class="r">ราคา</th><th class="r">มูลค่า(บ.)</th><th class="r">ยังไม่ขาย</th><th class="r">%</th><th class="r">ขายแล้ว</th><th class="r">ปันผล%</th></tr>`;
   open.forEach(h=>{
@@ -656,17 +649,15 @@ function renderPort(){
   const tv=stocksVal(),tc=stocksCost();
   hh+=`<tr class="total-row"><td>รวม</td><td></td><td></td><td></td><td></td><td class="r">${fmt(tv)}</td><td class="r ${tv-tc>=0?'pos':'neg'}">${tv-tc>=0?'+':'−'}${fmt(Math.abs(tv-tc))}</td><td class="r">${pct(tv-tc,tc).toFixed(1)}%</td><td class="r ${realTotal>=0?'pos':'neg'}">${realTotal?((realTotal>=0?'+':'−')+fmt(Math.abs(realTotal))):'—'}</td><td></td></tr>`;
   $('tblHold').innerHTML=hh;
-  // stock transaction log
-  let sh=`<tr><th>วันที่</th><th>รายการ</th><th>หุ้น</th><th class="r">จำนวน</th><th class="r">ราคา</th><th class="r">FX</th><th class="r">ค่าธรรมเนียม</th><th>โน้ต</th><th></th></tr>`;
-  [...APP.stockTx].sort((a,b)=>b.date.localeCompare(a.date)).forEach(t=>{sh+=`<tr><td>${fmtD(t.date)}</td><td><span class="badge" style="background:${t.action==='sell'?'var(--loss-soft)':'var(--win-soft)'};color:${t.action==='sell'?'var(--bad-text)':'var(--good-text)'}">${t.action==='sell'?'ขาย':'ซื้อ'}</span></td><td><b>${t.sym}</b> ${t.ccy}</td><td class="r">${t.shares}</td><td class="r">${t.price}</td><td class="r">${t.ccy==='USD'?(t.fxTrade||'—'):'—'}</td><td class="r">${t.fees||0}</td><td style="color:var(--ink-2);max-width:160px;overflow:hidden;text-overflow:ellipsis">${t.note||''}</td><td><button class="del" data-delstx="${t.id}">✕</button></td></tr>`;});
-  $('stxTbl').innerHTML=sh;
-  // gain chart
+  // gain chart (per stock)
   const gr=open.map(h=>({s:h.sym,v:h.unrealTHB})).sort((a,b)=>b.v-a.v);const gmax=Math.max(...gr.map(r=>Math.abs(r.v)),1);
-  $('gainChart').innerHTML=gr.map(r=>`<div class="barpct" style="grid-template-columns:60px 1fr 92px"><span class="nm">${r.s}</span><span class="track"><span class="fill" style="${r.v>=0?'left:50%':'right:50%'};width:${Math.abs(r.v)/gmax*50}%;background:${r.v>=0?'var(--win)':'var(--loss)'}"></span><span style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--baseline)"></span></span><span class="vl ${r.v>=0?'pos':'neg'}">${r.v>=0?'+':'−'}${fmt(Math.abs(r.v))}</span></div>`).join('');
+  $('gainChart').innerHTML='<div class="chart-cap">📊 กำไร/ขาดทุนรายตัว · บาท</div>'+(gr.length?gr.map(r=>`<div class="barpct" style="grid-template-columns:60px 1fr 92px"><span class="nm">${r.s}</span><span class="track"><span class="fill" style="${r.v>=0?'left:50%':'right:50%'};width:${Math.abs(r.v)/gmax*50}%;background:${r.v>=0?'var(--win)':'var(--loss)'}"></span><span style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--baseline)"></span></span><span class="vl ${r.v>=0?'pos':'neg'}">${r.v>=0?'+':'−'}${fmt(Math.abs(r.v))}</span></div>`).join(''):'<p style="color:var(--muted)">ยังไม่มีหุ้น — กด + บันทึกซื้อ/ขาย</p>');
+  // group / type breakdown bar
+  const gc={'Magnificent Growth':css('--accent'),'Cash Flow Machine':css('--win'),'กบข.':css('--violet'),'สหกรณ์':css('--aqua'),'ทอง':css('--gold'),'ดอกเบี้ย (รับปีนี้)':css('--muted')};
   const groups={};open.forEach(h=>groups[h.group]=(groups[h.group]||0)+h.valueTHB);
-  const rows=[...Object.entries(groups).map(([n,v])=>({n,v})),{n:'กบข.',v:APP.gbx.value},{n:'สหกรณ์',v:APP.coop.value},{n:'ทอง',v:APP.gold.value}].sort((a,b)=>b.v-a.v);
-  const mx=Math.max(...rows.map(r=>r.v),1);
-  $('grpChart').innerHTML=rows.map(r=>`<div class="barpct" style="grid-template-columns:150px 1fr 90px"><span class="nm">${r.n}</span><span class="track"><span class="fill" style="width:${r.v/mx*100}%;background:var(--accent)"></span></span><span class="vl">${fmt(r.v)}</span></div>`).join('');
+  const rows=[...Object.entries(groups).map(([n,v])=>({n,v})),{n:'กบข.',v:APP.gbx.value},{n:'สหกรณ์',v:APP.coop.value},{n:'ทอง',v:APP.gold.value},{n:'ดอกเบี้ย (รับปีนี้)',v:interest}].filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
+  const mx=Math.max(...rows.map(r=>r.v),1);const gTot=sum(rows.map(r=>r.v))||1;
+  $('grpChart').innerHTML='<div class="chart-cap">🍩 มูลค่าตามชนิด/กลุ่ม · บาท</div>'+rows.map(r=>`<div class="barpct" style="grid-template-columns:160px 1fr 118px"><span class="nm">${r.n}</span><span class="track"><span class="fill" style="width:${r.v/mx*100}%;background:${gc[r.n]||css('--accent')}"></span></span><span class="vl">${fmt(r.v)} <span style="color:var(--muted)">(${(r.v/gTot*100).toFixed(0)}%)</span></span></div>`).join('');
 }
 $('btnAddHold').onclick=()=>{$('frmHold').reset();$('frmHold').date.value=todayISO();$('frmHold').fxTrade.value=APP.fx;$('dlgHold').showModal();toggleFx();};
 function toggleFx(){const usd=$('frmHold').ccy.value==='USD';$('fxRow').style.display=usd?'':'none';}
@@ -679,11 +670,10 @@ $('frmHold').addEventListener('submit',e=>{if(e.submitter&&e.submitter.value==='
 
 // ราคาอัตโนมัติ
 function parseFeed(text){const m={};text.trim().split(/\r?\n/).forEach(l=>{const c=l.split(',');if(c.length>=2){const k=c[0].replace(/"/g,'').trim().toUpperCase();const v=parseFloat(c[1].replace(/[^\d.\-]/g,''));if(k&&!isNaN(v))m[k]=v;}});return m;}
-async function fetchPrices(){const url=APP.priceSheetUrl;if(!url)return;const st=$('feedStatus');st.textContent='กำลังดึง...';try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const m=parseFeed(await r.text());let n=0;if(m.USDTHB){APP.fx=m.USDTHB;$('fx').value=m.USDTHB.toFixed(2);n++;}Object.keys(m).forEach(k=>{if(k!=='USDTHB'&&k!=='XAUUSD'){APP.priceNow[k]=m[k];n++;}});if(m.XAUUSD)APP.goldSpot=m.XAUUSD;const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;st.innerHTML=`🟢 อัพเดท ${n} ค่า · ${APP.priceUpdated}`;if($('pg-port').classList.contains('on'))renderPort();if($('pg-wealth').classList.contains('on'))renderWealth();}catch(e){st.innerHTML=`🔴 ${e.message} — เช็ค publish/เน็ต · พิมพ์เองได้`;}}
-$('btnConnect').onclick=()=>{APP.priceSheetUrl=$('feedUrl').value.trim();fetchPrices();};
-// รีเฟรชราคาสด (ไม่ต้องตั้ง Sheet) — FX จาก open.er-api.com, หุ้นจาก Stooq
+async function fetchPrices(){const url=APP.priceSheetUrl;if(!url)return;const st=$('feedStatus');if(st)st.textContent='กำลังดึง...';try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const m=parseFeed(await r.text());let n=0;if(m.USDTHB){APP.fx=m.USDTHB;$('fx').value=m.USDTHB.toFixed(2);n++;}Object.keys(m).forEach(k=>{if(k!=='USDTHB'&&k!=='XAUUSD'){APP.priceNow[k]=m[k];n++;}});if(m.XAUUSD)APP.goldSpot=m.XAUUSD;const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;if(st)st.innerHTML=`🟢 อัพเดท ${n} ค่า · ${APP.priceUpdated}`;if($('pg-port').classList.contains('on'))renderPort();if($('pg-wealth').classList.contains('on'))renderWealth();}catch(e){if(st)st.innerHTML=`🔴 ${e.message} — เช็ค publish/เน็ต · พิมพ์เองได้`;}}
+// รีเฟรชราคาสด (ไม่ต้องตั้ง Sheet) — FX จาก open.er-api.com, หุ้นจาก Stooq — ใช้ในหน้า Journal
 async function liveRefresh(statusEl){
-  const st=statusEl?$(statusEl):$('feedStatus');st.textContent='กำลังดึงราคาสด...';let msg=[];
+  const st=statusEl?$(statusEl):$('feedStatus');if(st)st.textContent='กำลังดึงราคาสด...';let msg=[];
   // FX
   try{const r=await fetch('https://open.er-api.com/v6/latest/USD',{cache:'no-store'});const j=await r.json();if(j&&j.rates&&j.rates.THB){APP.fx=Math.round(j.rates.THB*100)/100;$('fx').value=APP.fx;msg.push('ค่าเงิน '+APP.fx);}}catch(e){msg.push('FX ✗');}
   // หุ้น US จาก Stooq
@@ -698,123 +688,61 @@ async function liveRefresh(statusEl){
     msg.push(n+' หุ้น');
   }catch(e){msg.push('หุ้น ✗ (เครือข่ายบล็อก Stooq — ลองเปิดผ่านลิงก์เว็บ)');}}
   const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  st.innerHTML=`🟢 อัพเดท: ${msg.join(' · ')} · ${APP.priceUpdated}`;
+  if(st)st.innerHTML=`🟢 อัพเดท: ${msg.join(' · ')} · ${APP.priceUpdated}`;
   const cur=document.querySelector('.tab.on').dataset.tab;if(renderers[cur])renderers[cur]();
 }
-$('btnLive').onclick=()=>liveRefresh('feedStatus');
 
 // ==================== Trading Journal ====================
-async function fetchJournal(){const url=APP.journalSheetUrl;if(!url)return;const st=$('jFeedStatus');st.textContent='กำลังดึง...';try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
-  const rows=(await r.text()).trim().split(/\r?\n/).map(l=>l.split(',').map(x=>x.replace(/"/g,'').trim()));
-  const head=rows[0].map(x=>x.toLowerCase());const idx=n=>head.indexOf(n);
-  let n=0;rows.slice(1).forEach(c=>{const sym=(c[idx('sym')]||c[0]||'').toUpperCase();const w=APP.watch.find(x=>x.sym.toUpperCase()===sym);if(w){const g=(nm)=>{const i=idx(nm);return i>=0?parseFloat((c[i]||'').replace(/[^\d.\-]/g,'')):0;};w.price=g('price')||w.price;w.pe=g('pe')||w.pe;w.high52=g('high52')||w.high52;w.low52=g('low52')||w.low52;w.yield=g('yield')||w.yield;n++;}});
-  const d=new Date();st.innerHTML=`🟢 อัพเดท ${n} หุ้น · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;renderJournal();}catch(e){st.innerHTML=`🔴 ${e.message}`;}}
-$('btnJConnect').onclick=()=>{APP.journalSheetUrl=$('jFeedUrl').value.trim();fetchJournal();};
-$('btnJLive').onclick=()=>liveRefresh('jFeedStatus');
 
 const mult=t=>t.type==='option'?100:1;
 const isClosed=t=>t.exit!=null&&t.exit!=='';
 const pnl=t=>((t.exit-t.entry)*(t.side==='long'?1:-1))*t.qty*mult(t)-(t.fees||0);
-let jFilter='all';
-let jCalYM=[2026,6];
-function renderEquity(eq,net){
-  const box=$('eqChart');box.innerHTML='';
-  if(!eq.length){box.innerHTML='<p style="color:var(--muted)">ยังไม่มีเทรดที่ปิดแล้ว</p>';return;}
-  const W=Math.max(box.clientWidth||560,360),H=240,pad={l:52,r:12,t:12,b:24};
-  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',height:H},box);
-  const vals=[0,...eq.map(p=>p.v)];const vMin=Math.min(...vals,0),vMax=Math.max(...vals,1);
-  const iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;const X=i=>pad.l+iw*i/eq.length,Y=v=>pad.t+ih-(v-vMin)/(vMax-vMin)*ih;
-  for(let i=0;i<=4;i++){const v=vMin+(vMax-vMin)*i/4,yy=Y(v);el('line',{x1:pad.l,x2:W-pad.r,y1:yy,y2:yy,stroke:css('--grid')},svg);el('text',{x:pad.l-8,y:yy+4,'text-anchor':'end','font-size':10,fill:css('--muted')},svg).textContent='$'+v.toFixed(0);}
-  if(vMin<0)el('line',{x1:pad.l,x2:W-pad.r,y1:Y(0),y2:Y(0),stroke:css('--baseline'),'stroke-dasharray':'3 3'},svg);
-  const col=net>=0?css('--win'):css('--loss');const pts=[[X(0),Y(0)],...eq.map((p,i)=>[X(i+1),Y(p.v)])];
-  el('polygon',{points:`${pts.map(p=>p.join(',')).join(' ')} ${X(eq.length)},${Y(Math.max(vMin,0))} ${X(0)},${Y(Math.max(vMin,0))}`,fill:col,opacity:.08},svg);
-  el('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:col,'stroke-width':2},svg);
-  eq.forEach((p,i)=>{el('circle',{cx:X(i+1),cy:Y(p.v),r:3,fill:col},svg);const hit=el('rect',{x:X(i+1)-iw/(2*eq.length),y:pad.t,width:iw/eq.length,height:ih,fill:'transparent'},svg);hit.addEventListener('mousemove',e=>showTip(`<b>${fmtD(p.d)}</b> · ${p.t.symbol}<br>ไม้นี้ $${pnl(p.t).toFixed(1)}<br>สะสม <b>$${p.v.toFixed(1)}</b>`,e.clientX,e.clientY));hit.addEventListener('mouseleave',hideTip);});
-  el('text',{x:W-pad.r,y:pad.t+2,'text-anchor':'end','font-size':13,'font-weight':700,fill:col},svg).textContent='$'+net.toFixed(0);
-}
-function renderJCal(){
-  const[y,m]=jCalYM;$('calTitle').textContent=`P&L รายวัน · ${THM[m]} ${y+543}`;
-  const byDay={};APP.trades.filter(isClosed).forEach(t=>{const p=(t.closeDate||t.date).split('-').map(Number);if(p[0]===y&&p[1]-1===m)byDay[p[2]]=(byDay[p[2]]||0)+pnl(t);});
-  const off=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
-  let h=['จ','อ','พ','พฤ','ศ','ส','อา'].map(d=>`<div class="wd">${d}</div>`).join('');
-  for(let i=0;i<off;i++)h+='<div class="cal-cell off"></div>';
-  for(let d=1;d<=days;d++){const p=byDay[d];h+=`<div class="cal-cell ${p==null?'':p>=0?'win':'loss'}">${d}${p!=null?`<span class="pnl">${p>=0?'+':''}${p.toFixed(0)}</span>`:''}</div>`;}
-  $('calGrid').innerHTML=h;
-}
-function renderSymBreak(closed){
-  const by={};closed.forEach(t=>by[t.symbol]=(by[t.symbol]||0)+pnl(t));
-  const rows=Object.entries(by).map(([s,v])=>({s,v})).sort((a,b)=>b.v-a.v);
-  const mx=Math.max(...rows.map(r=>Math.abs(r.v)),1);
-  $('symBreak').innerHTML=rows.length?rows.map(r=>`<div class="barpct" style="grid-template-columns:60px 1fr 70px"><span class="nm">${r.s}</span><span class="track"><span class="fill" style="${r.v>=0?'left:50%':'right:50%'};width:${Math.abs(r.v)/mx*50}%;background:${r.v>=0?'var(--win)':'var(--loss)'}"></span><span style="position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--baseline)"></span></span><span class="vl ${r.v>=0?'pos':'neg'}">$${r.v.toFixed(0)}</span></div>`).join(''):'<p style="color:var(--muted)">—</p>';
-}
-function renderSideStats(closed){
-  const grp=(fn,label)=>{const g={};closed.forEach(t=>{const k=fn(t);(g[k]=g[k]||[]).push(pnl(t));});return Object.entries(g).map(([k,a])=>({k,n:a.length,net:sum(a),wr:a.filter(x=>x>0).length/a.length*100}));};
-  const byType=grp(t=>t.type==='option'?'Options':'หุ้น');const bySide=grp(t=>t.side==='short'?'Short':'Long');
-  const tbl=arr=>`<table style="margin-bottom:8px"><tr><th>กลุ่ม</th><th class="r">ไม้</th><th class="r">Net</th><th class="r">Win%</th></tr>${arr.map(r=>`<tr><td>${r.k}</td><td class="r">${r.n}</td><td class="r ${r.net>=0?'pos':'neg'}">$${r.net.toFixed(0)}</td><td class="r">${r.wr.toFixed(0)}%</td></tr>`).join('')}</table>`;
-  $('sideStats').innerHTML=(closed.length?tbl(byType)+tbl(bySide):'<p style="color:var(--muted)">ยังไม่มีเทรดปิด</p>');
-}
-$('calPrev').onclick=()=>{jCalYM=jCalYM[1]?[jCalYM[0],jCalYM[1]-1]:[jCalYM[0]-1,11];renderJCal();};
-$('calNext').onclick=()=>{jCalYM=jCalYM[1]<11?[jCalYM[0],jCalYM[1]+1]:[jCalYM[0]+1,0];renderJCal();};
+// นักลงทุน/กองทุนรายใหญ่ — ความเคลื่อนไหวพอร์ต 13F ไตรมาส Q1 2026 (ยื่น พ.ค. 2026)
+const GURUS=[
+  {n:'Warren Buffett',f:'Berkshire Hathaway (ปัจจุบัน CEO Greg Abel)',s:'เน้นคุณค่า ถือยาว',buy:['Alphabet (เพิ่ม ~3 เท่า)','Delta Air Lines (ใหม่)','New York Times','Macy\'s (ใหม่)'],sell:['ออก UnitedHealth, Amazon, Visa/Mastercard','Constellation −95%','Chevron −35%'],url:'https://www.dataroma.com/m/holdings.php?m=BRK'},
+  {n:'Bill Ackman',f:'Pershing Square',s:'ถือน้อยตัว เน้นบริษัทใหญ่คุณภาพ',buy:['Microsoft (ใหม่ ~$2.1B)','Amazon (เพิ่ม)'],sell:['Alphabet −95%','ออก Hilton'],url:'https://www.dataroma.com/m/holdings.php?m=psc'},
+  {n:'David Tepper',f:'Appaloosa',s:'มาโคร + เอียงหุ้นจีน/เทค',buy:['Amazon (~2 เท่า)','Uber (~3 เท่า)','Vistra','SanDisk (ใหม่)'],sell:['ออกสายการบินทั้งหมด','Microsoft −82%','Alibaba −33%'],url:'https://www.dataroma.com/m/holdings.php?m=AM'},
+  {n:'Stanley Druckenmiller',f:'Duquesne Family Office',s:'มาโคร ปรับพอร์ตเร็ว',buy:['Broadcom (ใหม่)','YPF (~4 เท่า)','STMicro (~3 เท่า)','กลุ่ม biotech'],sell:['ออก Alphabet, Delta'],url:'https://www.dataroma.com/m/home.php'},
+  {n:'Brad Gerstner',f:'Altimeter Capital',s:'เทคเติบโต / ธีม AI',buy:['NVIDIA (+15%)','Uber (+43%)','Arm (ใหม่)','Axon (ใหม่)','TSMC'],sell:['ออก Alphabet, MercadoLibre, Coupang'],url:'https://www.dataroma.com/m/home.php'},
+  {n:'Michael Burry',f:'Scion Asset Management',s:'สวนตลาด เก็บของถูกช่วงตกแรง',buy:['Flutter, DraftKings (พนันกีฬา)','JD.com, MercadoLibre','ถือ UnitedHealth, Regeneron, Lululemon, Meta'],sell:['เน้นถือน้อยตัว ความเชื่อมั่นสูง'],url:'https://www.dataroma.com/m/holdings.php?m=SAM'},
+  {n:'Cathie Wood',f:'ARK Invest',s:'หุ้นเทคพลิกโลก (AI/หุ่นยนต์/ชีวเทค)',buy:['Broadcom (ใหม่)','Tempus AI (+27%)','Robinhood (+25%)'],sell:['Teradyne −47%','Roku −35%','ออก The Trade Desk','ถือหนัก Tesla, AMD, CRISPR, Shopify, Palantir'],url:'https://www.dataroma.com/m/holdings.php?m=ark'},
+  {n:'Chris Hohn',f:'TCI Fund Management',s:'เน้นคุณค่า+activist ถือ ~9 ตัว',buy:['Alphabet (กลับเข้า ~7%)','Ferrovial (ใหม่ activist)'],sell:['Microsoft −84% (กลัว AI ทุบ Office)','ถือ GE Aerospace, Visa, Moody\'s, S&P Global'],url:'https://www.dataroma.com/m/holdings.php?m=tci'},
+  {n:'Terry Smith',f:'Fundsmith',s:'ซื้อบริษัทดี ไม่แพง แล้วถือยาว (แทบไม่เทรด)',buy:['ปรับพอร์ตน้อยมากตามสไตล์'],sell:['ถือหลัก Microsoft, Meta, Novo Nordisk, L\'Oréal, Philip Morris, Stryker'],url:'https://www.dataroma.com/m/holdings.php?m=FS'},
+  {n:'NVIDIA (พอร์ตบริษัท)',f:'เงินลงทุนในระบบนิเวศ AI',s:'ลงทุนบริษัท AI/โครงสร้างพื้นฐาน',buy:['CoreWeave (~2 เท่า)','Coherent (ใหม่)'],sell:['ถือ Intel, Synopsys, Nebius เท่าเดิม'],url:'https://www.dataroma.com/m/home.php'}
+];
+const zoneOf=(w)=>{if(w.high52&&w.low52&&w.price){const r=pct(w.price-w.low52,w.high52-w.low52);
+  if(r<=25)return{c:'lo',t:`🟢 ช่วงล่างกรอบ 52wk (${r.toFixed(0)}%)`};
+  if(r>=85)return{c:'hi',t:`🔴 ใกล้จุดสูง 52wk (${r.toFixed(0)}%)`};
+  return{c:'mid',t:`⚪ กลางกรอบ (${r.toFixed(0)}%)`};}
+  return{c:'mid',t:'— ใส่ High52/Low52 ก่อน'};};
 function renderJournal(){
-  const closed=APP.trades.filter(isClosed).sort((a,b)=>(a.closeDate||a.date).localeCompare(b.closeDate||b.date));
-  const pls=closed.map(pnl);const net=sum(pls);
-  const wins=pls.filter(p=>p>0),losses=pls.filter(p=>p<=0);
-  const avgW=wins.length?sum(wins)/wins.length:0,avgL=losses.length?sum(losses)/losses.length:0;
-  const pf=losses.length&&sum(losses)!==0?sum(wins)/Math.abs(sum(losses)):(wins.length?Infinity:0);
-  const expectancy=closed.length?net/closed.length:0;
-  const best=closed.length?Math.max(...pls):0,worst=closed.length?Math.min(...pls):0;
-  // equity + maxDD
-  let acc=0,peak=0,maxDD=0;const eq=closed.map(t=>{acc+=pnl(t);peak=Math.max(peak,acc);maxDD=Math.max(maxDD,peak-acc);return{d:t.closeDate||t.date,v:acc,t};});
-  const pfTxt=pf===Infinity?'∞':pf.toFixed(2);
-  const awl=avgL?Math.abs(avgW/avgL).toFixed(2)+'×':'—';
-  $('jTiles').innerHTML=`
-    <div class="tile"><div class="label">Net P&L (realized)</div><div class="value" style="color:${net>=0?'var(--good-text)':'var(--bad-text)'}">$${net.toFixed(0)}</div><div class="note">≈ ${fmt(net*APP.fx)} บ. · ${closed.length} ปิด · ${APP.trades.filter(t=>!isClosed(t)).length} ถือ</div></div>
-    <div class="tile"><div class="label">Win Rate</div><div class="value">${closed.length?(wins.length/closed.length*100).toFixed(0):0}%</div><div class="note">${wins.length}W – ${losses.length}L</div></div>
-    <div class="tile"><div class="label">Profit Factor</div><div class="value">${pfTxt}</div><div class="note">กำไรรวม÷ขาดทุนรวม</div></div>
-    <div class="tile"><div class="label">Expectancy</div><div class="value" style="color:${expectancy>=0?'var(--good-text)':'var(--bad-text)'}">$${expectancy.toFixed(1)}</div><div class="note">กำไรเฉลี่ย/เทรด</div></div>
-    <div class="tile"><div class="label">Avg Win / Loss</div><div class="value">${awl}</div><div class="note">$${avgW.toFixed(0)} / $${avgL.toFixed(0)}</div></div>
-    <div class="tile"><div class="label">Max Drawdown</div><div class="value" style="color:var(--bad-text)">−$${maxDD.toFixed(0)}</div><div class="note">Best +$${best.toFixed(0)} · Worst $${worst.toFixed(0)}</div></div>`;
-  renderEquity(eq,net);renderJCal();renderSymBreak(closed);renderSideStats(closed);
-  // watchlist board
-  let wh=`<tr><th>หุ้น</th><th class="r">ราคา</th><th class="r">P/E</th><th class="r">%จาก Low52</th><th class="r">ปันผล%</th><th>ราคาเป้า</th><th>วันงบ</th><th>ขึ้น XD</th><th>โน้ต</th><th>ข้อมูล</th><th></th></tr>`;
-  APP.watch.forEach(w=>{const s=encodeURIComponent(w.sym);const range=(w.high52&&w.low52)?pct(w.price-w.low52,w.high52-w.low52):null;
-    wh+=`<tr><td contenteditable data-watch="${w.id}" data-f="sym"><b>${w.sym}</b></td>
+  // 🌍 นักลงทุนระดับโลก
+  $('guruGrid').innerHTML=GURUS.map(g=>`<div class="guru-card">
+    <div class="guru-nm">${g.n}</div>
+    <div class="guru-f">${g.f}</div>
+    <div class="guru-s">${g.s}</div>
+    <div class="guru-mv"><b class="pos">🟢 ซื้อ/เพิ่ม</b><ul>${g.buy.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    <div class="guru-mv"><b class="neg">🔴 ขาย/ออก</b><ul>${g.sell.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    <a class="guru-link" href="${g.url}" target="_blank" rel="noopener">ดูพอร์ตสด (Dataroma) ↗</a>
+  </div>`).join('');
+  // ⭐ รายชื่อที่จับตา — ข้อมูล + สัญญาณ + แผน
+  let wh=`<tr><th>หุ้น</th><th class="r">ราคา</th><th class="r">P/E</th><th class="r">High52</th><th class="r">Low52</th><th>สัญญาณ (ข้อมูลประกอบ)</th><th class="r">เป้า</th><th>มุมมอง/แผนของฉัน</th><th>ลิงก์</th><th></th></tr>`;
+  APP.watch.forEach(w=>{const s=encodeURIComponent(w.sym);const z=zoneOf(w);const tgt=parseFloat(w.target);const vsT=(!isNaN(tgt)&&w.price)?(w.price<=tgt?' · ต่ำกว่าเป้า ✓':' · เหนือเป้า'):'';
+    wh+=`<tr>
+      <td contenteditable data-watch="${w.id}" data-f="sym"><b>${w.sym}</b></td>
       <td class="r">${w.price?w.price:'—'}</td>
-      <td class="r">${w.pe?w.pe.toFixed(1):'—'}</td>
-      <td class="r">${range==null?'—':range.toFixed(0)+'%'}</td>
-      <td class="r">${w.yield?w.yield.toFixed(2):'—'}</td>
-      <td contenteditable data-watch="${w.id}" data-f="target">${w.target||''}</td>
-      <td contenteditable data-watch="${w.id}" data-f="earn">${w.earn||''}</td>
-      <td contenteditable data-watch="${w.id}" data-f="xd">${w.xd||''}</td>
-      <td contenteditable data-watch="${w.id}" data-f="note" style="color:var(--ink-2)">${w.note||''}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="pe">${w.pe||''}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="high52">${w.high52||''}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="low52">${w.low52||''}</td>
+      <td><span class="zone ${z.c}">${z.t}</span>${w.pe?` <span style="color:var(--muted);font-size:11px">P/E ${(+w.pe).toFixed(0)}${w.pe>=40?' สูง':''}</span>`:''}${vsT}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="target">${w.target||''}</td>
+      <td contenteditable data-watch="${w.id}" data-f="plan" style="min-width:150px;color:var(--ink-1)">${w.plan||''}</td>
       <td><a class="wlink" target="_blank" href="https://finance.yahoo.com/quote/${s}">Y</a><a class="wlink" target="_blank" href="https://finviz.com/quote.ashx?t=${s}">F</a></td>
       <td><button class="del" data-delwatch="${w.id}">✕</button></td></tr>`;});
+  if(!APP.watch.length)wh+=`<tr><td colspan="10" style="text-align:center;color:var(--muted)">ยังไม่มีหุ้น — กด + เพิ่มหุ้น</td></tr>`;
   $('watchTbl').innerHTML=wh;
-  // calendar of upcoming dates
-  const events=[];APP.watch.forEach(w=>{if(w.earn)events.push({d:w.earn,t:`${w.sym} ประกาศงบ`});if(w.xd)events.push({d:w.xd,t:`${w.sym} ขึ้น XD (ปันผล)`});});
-  events.sort((a,b)=>String(a.d).localeCompare(String(b.d)));
-  $('calList').innerHTML=events.length?events.map(e=>`<div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--grid);font-size:12.5px"><b style="color:var(--accent);min-width:70px">${e.d}</b><span>${e.t}</span></div>`).join(''):'<p style="color:var(--muted)">ยังไม่มี — ใส่วันงบ/XD ในตาราง Watchlist</p>';
-  // insights
-  const ins=[];APP.watch.forEach(w=>{if(w.pe&&w.high52&&w.low52){const range=pct(w.price-w.low52,w.high52-w.low52);if(range<=25)ins.push(`<b>${w.sym}</b> ราคาอยู่ช่วงล่างของกรอบ 52wk (${range.toFixed(0)}%) — ถ้าพื้นฐานดี อาจเป็นโซนสะสม`);if(range>=90)ins.push(`<b>${w.sym}</b> ราคาใกล้จุดสูงสุด 52wk (${range.toFixed(0)}%) — ระวังไล่ราคา`);if(w.pe>40)ins.push(`<b>${w.sym}</b> P/E สูง (${w.pe.toFixed(0)}) — ตลาดคาดหวังการเติบโตเยอะ`);}});
-  $('jInsights').innerHTML=ins.length?ins.map(t=>`<li>${t}</li>`).join(''):'<li style="color:var(--muted)">เชื่อม Sheet ที่มี P/E, 52wk แล้ว Insights จะขึ้นเอง</li>';
-  // trade log
-  $('jFilters').innerHTML=[['all','ทั้งหมด'],['stock','หุ้น'],['option','Options'],['open','ยังถือ']].map(([v,l])=>`<span class="chip ${jFilter===v?'on':''}" data-jf="${v}">${l}</span>`).join('');
-  const rows=APP.trades.filter(t=>jFilter==='all'||(jFilter==='open'?!isClosed(t):t.type===jFilter)).sort((a,b)=>(b.closeDate||b.date).localeCompare(a.closeDate||a.date));
-  let th=`<tr><th>วันที่</th><th>สัญลักษณ์</th><th class="r">วันถือ</th><th class="r">จำนวน</th><th class="r">เข้า</th><th class="r">ออก</th><th class="r">P&L</th><th class="r">%</th><th>โน้ต</th><th></th></tr>`;
-  rows.forEach(t=>{const cl=isClosed(t),p=cl?pnl(t):null;
-    const days=cl?Math.round((new Date(t.closeDate)-new Date(t.date))/864e5):null;
-    const ret=cl?pct(p,Math.abs(t.entry*t.qty*mult(t))):null;
-    th+=`<tr><td>${fmtD(t.date)}${cl?'→'+fmtD(t.closeDate):''}</td><td><b>${t.symbol}</b>${t.type==='option'?` <span class="badge opt">${t.optDetail||'OPT'}</span>`:''}${t.side==='short'?' <span class="badge">S</span>':''}</td><td class="r">${days==null?'—':days+'ว'}</td><td class="r">${t.qty}</td><td class="r">${t.entry}</td><td class="r">${cl?t.exit:'<span class="badge open">ถือ</span>'}</td><td class="r ${p==null?'':p>=0?'pos':'neg'}">${p==null?'—':(p>=0?'+':'')+p.toFixed(1)}</td><td class="r ${ret==null?'':ret>=0?'pos':'neg'}">${ret==null?'—':(ret>=0?'+':'')+ret.toFixed(0)+'%'}</td><td style="color:var(--ink-2);max-width:160px;overflow:hidden;text-overflow:ellipsis">${t.note||''}</td><td>${cl?'':`<button class="mini" data-close="${t.id}">ปิด</button>`}<button class="del" data-deltrade="${t.id}">✕</button></td></tr>`;});
-  if(!rows.length)th+=`<tr><td colspan="10" style="text-align:center;color:var(--muted)">—</td></tr>`;
-  $('tblTrades').innerHTML=th;
 }
-$('btnAddWatch').onclick=()=>{APP.watch.push({id:'w'+(nextRow++),sym:'TICKER',ccy:'USD',note:'',target:'',earn:'',xd:'',price:0,pe:0,high52:0,low52:0,yield:0});renderJournal();};
-$('jFilters').addEventListener('click',e=>{const c=e.target.closest('[data-jf]');if(c){jFilter=c.dataset.jf;renderJournal();}});
-const dlg=$('dlg'),frm=$('frm');
-$('btnLog').onclick=()=>{frm.reset();$('optRow').style.display='none';dlg.showModal();};
-$('fType').onchange=e=>{$('optRow').style.display=e.target.value==='option'?'':'none';};
-frm.addEventListener('submit',e=>{if(e.submitter&&e.submitter.value==='cancel')return;const f=new FormData(frm);if(!f.get('date')||!f.get('symbol'))return;const ex=f.get('exit');
-  APP.trades.push({id:nextTid++,date:f.get('date'),closeDate:ex?f.get('date'):null,symbol:f.get('symbol').toUpperCase().trim(),type:f.get('type'),side:f.get('side'),qty:num(f.get('qty')),entry:num(f.get('entry')),exit:ex?num(ex):null,fees:num(f.get('fees')),optDetail:f.get('optDetail')||undefined,note:f.get('note')||''});renderJournal();});
+$('btnAddWatch').onclick=()=>{APP.watch.push({id:'w'+(nextRow++),sym:'TICKER',ccy:'USD',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0});renderJournal();};
 
 // ==================== รายรับ-รายจ่าย (รอบเงินเดือน) ====================
 let periodIdx=null; // null = รอบล่าสุด
@@ -850,10 +778,12 @@ function renderBudget(){
     <div class="tile"><div class="label">ออม/ลงทุน</div><div class="value" style="color:var(--accent)">${fmt(p.saving)}</div><div class="note">อัตราออม ${pct(p.saving,p.income).toFixed(0)}%</div></div>
     <div class="tile"><div class="label">หนี้ที่ต้องชำระ</div><div class="value" style="color:var(--gold)">${fmt(p.debtDue)}</div><div class="note">บัตร/ผ่อน ครบกำหนดรอบนี้</div></div>
     <div class="tile"><div class="label">คงเหลือ (เงินสด)</div><div class="value" style="color:${p.net>=0?'var(--good-text)':'var(--bad-text)'}">${fmt(p.net)}</div><div class="note">รับ−จ่ายสด−ออม−หนี้</div></div>`;
-  // category chart with %
+  // แผนที่สีของหมวด (ใช้สีเดียวกันทั้งโดนัทเดือนนี้ + กราฟย้อนหลัง)
+  const CATCOL=catColorMap(P);
+  // 🍩 โดนัท: เดือนนี้จ่ายไปกับอะไร (ตามหมวด)
   const byCat={};p.rows.filter(t=>t.type==='expense').forEach(t=>byCat[t.cat]=(byCat[t.cat]||0)+t.amount);
-  const cats=Object.entries(byCat).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v);const cTot=sum(cats.map(c=>c.v))||1;const cmax=Math.max(...cats.map(c=>c.v),1);
-  $('catChart').innerHTML=cats.length?cats.map(c=>`<div class="barpct"><span class="nm">${c.n}</span><span class="track"><span class="fill" style="width:${c.v/cmax*100}%;background:var(--loss)"></span></span><span class="vl">${fmt(c.v)} <span style="color:var(--muted)">(${(c.v/cTot*100).toFixed(0)}%)</span></span></div>`).join(''):'<p style="color:var(--muted)">—</p>';
+  const cats=Object.entries(byCat).map(([n,v])=>({k:n,v,c:CATCOL[n]})).sort((a,b)=>b.v-a.v);
+  renderDonut('catDonut','catLegend',cats,'จ่ายรวม');
   const byM={};p.rows.filter(t=>t.type==='expense').forEach(t=>byM[t.method]=(byM[t.method]||0)+t.amount);
   const ms=Object.entries(byM).map(([n,v])=>({n,v})).sort((a,b)=>b.v-a.v);const mTot=sum(ms.map(m=>m.v))||1;const mmax=Math.max(...ms.map(m=>m.v),1);
   $('methodChart').innerHTML=ms.length?ms.map(m=>`<div class="barpct"><span class="nm">${m.n}</span><span class="track"><span class="fill" style="width:${m.v/mmax*100}%;background:var(--gold)"></span></span><span class="vl">${fmt(m.v)} <span style="color:var(--muted)">(${(m.v/mTot*100).toFixed(0)}%)</span></span></div>`).join(''):'<p style="color:var(--muted)">—</p>';
@@ -863,39 +793,45 @@ function renderBudget(){
   [...p.rows].sort((a,b)=>b.date.localeCompare(a.date)).forEach(t=>{th+=`<tr><td>${fmtD(t.date)}</td><td><span class="dot" style="background:${TC[t.type]}"></span> ${TL[t.type]}</td><td>${t.cat}</td><td style="color:var(--ink-2)">${t.desc||''}${t.card?` <span class="badge" style="background:var(--warn-soft);color:var(--gold)">บัตร→${fmtD(t.due)}</span>`:''}</td><td style="color:var(--muted);font-size:11px">${t.method}</td><td class="r" style="font-weight:600;color:${t.type==='expense'?'var(--bad-text)':t.type==='income'?'var(--good-text)':'var(--accent)'}">${t.type==='expense'?'−':'+'}${fmt(t.amount)}</td><td><button class="del" data-deltx="${t.id}">✕</button></td></tr>`;});
   if(!p.rows.length)th+=`<tr><td colspan="7" style="text-align:center;color:var(--muted)">ยังไม่มีรายการรอบนี้</td></tr>`;
   $('tblTx').innerHTML=th;
-  renderWaterfall(p);renderMBar(P);
+  renderMBar(P,CATCOL);
 }
-function renderWaterfall(p){
-  const box=$('waterfall');box.innerHTML='';if(!p.income){box.innerHTML='<p style="color:var(--muted)">ยังไม่มีรายรับรอบนี้</p>';return;}
-  const steps=[{n:'รายรับ',d:+p.income,k:'start'},{n:'จ่ายสด',d:-p.cashExp,k:'down'},{n:'ออม',d:-p.saving,k:'save'},{n:'หนี้',d:-p.debtDue,k:'debt'},{n:'คงเหลือ',k:'total'}];
-  const W=Math.max(box.clientWidth||460,360),H=240,pad={l:50,r:8,t:12,b:38};
-  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',height:H},box);
-  const yMax=niceMax(p.income),iw=W-pad.l-pad.r,ih=H-pad.t-pad.b,Y=v=>pad.t+ih-v/yMax*ih;
-  for(let i=0;i<=4;i++){const v=yMax*i/4,yy=Y(v);el('line',{x1:pad.l,x2:W-pad.r,y1:yy,y2:yy,stroke:css(i?'--grid':'--baseline')},svg);el('text',{x:pad.l-6,y:yy+4,'text-anchor':'end','font-size':10,fill:css('--muted')},svg).textContent=fmt(v);}
-  const slot=iw/steps.length,bw=Math.min(44,slot*.55);let run=0;
-  steps.forEach((s,i)=>{const cx=pad.l+slot*i+slot/2;let top,bot,color;
-    if(s.k==='start'){bot=0;top=s.d;color=css('--win');run=s.d;}
-    else if(s.k==='total'){bot=0;top=run;color=run>=0?css('--accent'):css('--loss');}
-    else{top=run;run+=s.d;bot=run;color=s.k==='save'?css('--accent'):s.k==='debt'?css('--gold'):css('--loss');}
-    const y1=Y(Math.max(top,bot)),h=Math.abs(Y(top)-Y(bot));
-    el('rect',{x:cx-bw/2,y:y1,width:bw,height:Math.max(h,2),rx:3,fill:color,opacity:s.k==='total'?1:.9},svg);
-    el('text',{x:cx,y:y1-4,'text-anchor':'middle','font-size':10.5,'font-weight':700,fill:css('--ink-1')},svg).textContent=(s.k!=='start'&&s.k!=='total'?'−':'')+fmt(Math.abs(s.k==='total'?run:s.d));
-    el('text',{x:cx,y:H-20,'text-anchor':'middle','font-size':11,fill:css('--ink-2')},svg).textContent=s.n;});
+// สีของหมวดรายจ่าย — คงที่ต่อหมวด (เรียงชื่อ) เพื่อให้โดนัท + กราฟย้อนหลังใช้สีเดียวกัน
+function catColorMap(P){
+  const pal=[css('--accent'),css('--gold'),css('--violet'),css('--aqua'),css('--win'),css('--loss'),'#e0894f','#7bb8ff','#c86fd6','#59a14f','#b07aa1','#9c755f'];
+  const set=new Set();P.forEach(p=>p.rows.filter(t=>t.type==='expense').forEach(t=>set.add(t.cat)));
+  const cats=[...set].sort();const m={};cats.forEach((c,i)=>m[c]=pal[i%pal.length]);return m;
+}
+// โดนัททั่วไป
+function renderDonut(boxId,legId,parts,centerLabel){
+  const box=$(boxId);box.innerHTML='';const use=parts.filter(p=>p.v>0);const total=sum(use.map(p=>p.v));
+  if(!total){box.innerHTML='<p style="color:var(--muted)">ยังไม่มีรายจ่ายรอบนี้</p>';if($(legId))$(legId).innerHTML='';return;}
+  const size=190,c=size/2,R=80,r=50;const svg=el('svg',{viewBox:`0 0 ${size} ${size}`,width:size,height:size},box);
+  let a0=-Math.PI/2;const pt=(a,rad)=>[c+rad*Math.cos(a),c+rad*Math.sin(a)];
+  use.forEach(p=>{const a1=a0+p.v/total*Math.PI*2,lg=(a1-a0)>Math.PI?1:0;const[x0,y0]=pt(a0,R),[x1,y1]=pt(a1,R),[x2,y2]=pt(a1,r),[x3,y3]=pt(a0,r);
+    const path=el('path',{d:`M${x0},${y0} A${R},${R} 0 ${lg} 1 ${x1},${y1} L${x2},${y2} A${r},${r} 0 ${lg} 0 ${x3},${y3} Z`,fill:p.c,stroke:css('--surface-1'),'stroke-width':2},svg);
+    path.addEventListener('mousemove',e=>showTip(`<b>${p.k}</b>: ${fmt(p.v)} บ. (${(p.v/total*100).toFixed(0)}%)`,e.clientX,e.clientY));path.addEventListener('mouseleave',hideTip);a0=a1;});
+  el('text',{x:c,y:c-2,'text-anchor':'middle','font-size':11,fill:css('--muted')},svg).textContent=centerLabel||'รวม';
+  el('text',{x:c,y:c+16,'text-anchor':'middle','font-size':13,'font-weight':700,fill:css('--ink-1')},svg).textContent=fmt(total);
+  if($(legId))$(legId).innerHTML=use.map(p=>`<span class="it"><span class="dot" style="background:${p.c}"></span>${p.k} ${(p.v/total*100).toFixed(0)}%</span>`).join('');
 }
 let bRange='6mo';
 const BRANGES=[['3mo','3 รอบ'],['6mo','6 รอบ'],['12mo','12 รอบ'],['60mo','5 ปี']];
-function renderMBar(P){
+// กราฟย้อนหลัง: แต่ละรอบเป็นแท่งซ้อนแยก "ตามหมวด" (สีเดียวกับโดนัทเดือนนี้)
+function renderMBar(P,CATCOL){
   $('bRange').innerHTML=BRANGES.map(([k,l])=>`<span class="rb ${bRange===k?'on':''}" data-br="${k}">${l}</span>`).join('');
   const nMap={'3mo':3,'6mo':6,'12mo':12,'60mo':60};const show=P.slice(-nMap[bRange]).slice().reverse();
   const box=$('mBarChart');box.innerHTML='';if(!show.length){box.innerHTML='<p style="color:var(--muted)">—</p>';return;}
-  const segs=[{k:'cashExp',n:'จ่ายสด',c:css('--loss')},{k:'saving',n:'ออม',c:css('--accent')},{k:'debtDue',n:'หนี้',c:css('--gold')},{k:'net',n:'คงเหลือ',c:css('--win')}];
-  const maxInc=Math.max(...show.map(p=>p.income),1);
+  // หมวดที่โผล่ในช่วงที่แสดง (เรียงตามยอดรวมมาก→น้อย) เพื่อจัดเรียงเซกเมนต์ให้สม่ำเสมอ
+  const totByCat={};show.forEach(p=>p.rows.filter(t=>t.type==='expense').forEach(t=>totByCat[t.cat]=(totByCat[t.cat]||0)+t.amount));
+  const cats=Object.keys(totByCat).sort((a,b)=>totByCat[b]-totByCat[a]);
+  const maxExp=Math.max(...show.map(p=>sum(p.rows.filter(t=>t.type==='expense').map(t=>t.amount))),1);
   box.innerHTML=show.map(p=>{
-    let off=0;const inc=p.income||0;
-    const parts=segs.map(s=>{const v=Math.max(0,p[s.k]||0);const w=v/maxInc*100;const seg=`<span title="${s.n}: ${fmt(v)} (${inc?(v/inc*100).toFixed(0):0}%)" style="position:absolute;left:${off}%;width:${w}%;top:0;bottom:0;background:${s.c}"></span>`;off+=w;return seg;}).join('');
-    return`<div class="barpct" style="grid-template-columns:96px 1fr 84px"><span class="nm">${fmtD(p.start)}</span><span class="track" style="height:18px">${parts}</span><span class="vl">${fmt(inc)}</span></div>`;
+    const byC={};p.rows.filter(t=>t.type==='expense').forEach(t=>byC[t.cat]=(byC[t.cat]||0)+t.amount);
+    const tot=sum(Object.values(byC));let off=0;
+    const parts=cats.map(c=>{const v=byC[c]||0;if(v<=0)return'';const w=v/maxExp*100;const seg=`<span title="${c}: ${fmt(v)} (${tot?(v/tot*100).toFixed(0):0}%)" style="position:absolute;left:${off}%;width:${w}%;top:0;bottom:0;background:${CATCOL[c]||css('--muted')}"></span>`;off+=w;return seg;}).join('');
+    return`<div class="barpct" style="grid-template-columns:96px 1fr 84px"><span class="nm">${fmtD(p.start)}</span><span class="track" style="height:18px">${parts}</span><span class="vl">${fmt(tot)}</span></div>`;
   }).join('');
-  $('mBarLegend').innerHTML=segs.map(s=>`<span class="it"><span class="dot" style="background:${s.c}"></span>${s.n}</span>`).join('');
+  $('mBarLegend').innerHTML=cats.map(c=>`<span class="it"><span class="dot" style="background:${CATCOL[c]||css('--muted')}"></span>${c}</span>`).join('');
 }
 function fillCat(){const ty=$('txType').value;$('txCat').innerHTML=APP.cats[ty].map(c=>`<option>${c}</option>`).join('');}
 $('txType').addEventListener('change',fillCat);
@@ -917,10 +853,10 @@ $('bRange').addEventListener('click',e=>{const c=e.target.closest('[data-br]');i
 function renderProp(){
   const val=sum(APP.props.map(p=>p.value||0)),loan=sum(APP.props.map(p=>p.loan||0)),eq=val-loan;
   $('propTiles').innerHTML=`
-    <div class="tile"><div class="label">มูลค่าทรัพย์สินรวม</div><div class="value">${fmt(val)} บ.</div><div class="note">${APP.props.length} รายการ</div></div>
+    <div class="tile"><div class="label">มูลค่าสินทรัพย์รวม</div><div class="value">${fmt(val)} บ.</div><div class="note">${APP.props.length} รายการ</div></div>
     <div class="tile"><div class="label">หนี้คงเหลือรวม</div><div class="value" style="color:var(--bad-text)">${fmt(loan)} บ.</div><div class="note">ยอดที่ยังผ่อน</div></div>
     <div class="tile"><div class="label">ส่วนของเรา (equity)</div><div class="value" style="color:var(--good-text)">${fmt(eq)} บ.</div><div class="note">นับเข้าความมั่งคั่งสุทธิ</div></div>`;
-  let th=`<tr><th>ทรัพย์สิน</th><th>ประเภท</th><th class="r">มูลค่า (บ.)</th><th class="r">หนี้คงเหลือ</th><th class="r">ส่วนของเรา</th><th>โน้ต</th><th></th></tr>`;
+  let th=`<tr><th>สินทรัพย์</th><th>ประเภท</th><th class="r">มูลค่า (บ.)</th><th class="r">หนี้คงเหลือ</th><th class="r">ส่วนของเรา</th><th>โน้ต</th><th></th></tr>`;
   APP.props.forEach(p=>{const e=(p.value||0)-(p.loan||0);th+=`<tr><td contenteditable data-prop="${p.id}" data-f="name"><b>${p.name}</b></td><td>${p.type}</td><td class="r" contenteditable data-prop="${p.id}" data-f="value">${fmt(p.value)}</td><td class="r" contenteditable data-prop="${p.id}" data-f="loan">${fmt(p.loan)}</td><td class="r ${e>=0?'pos':'neg'}">${fmt(e)}</td><td contenteditable data-prop="${p.id}" data-f="note" style="color:var(--muted)">${p.note||''}</td><td><button class="del" data-delprop="${p.id}">✕</button></td></tr>`;});
   if(!APP.props.length)th+=`<tr><td colspan="7" style="text-align:center;color:var(--muted)">ยังไม่มี — กด + เพิ่ม</td></tr>`;
   $('propTbl').innerHTML=th;
@@ -933,7 +869,7 @@ $('frmProp').addEventListener('submit',e=>{if(e.submitter&&e.submitter.value==='
 document.addEventListener('input',e=>{const td=e.target.closest&&e.target.closest('td[contenteditable]');if(!td)return;const d=td.dataset;
   if(d.ast){const o=APP[d.ast];if(d.f==='note')o.note=td.textContent.trim();else o[d.f]=num(td.textContent);}
   else if(d.sym){const s=d.sym;if(d.f==='group')APP.symGroup[s]=td.textContent.trim();else if(d.f==='price')APP.priceNow[s]=num(td.textContent);else if(d.f==='div')APP.divYield[s]=num(td.textContent);}
-  else if(d.watch){const w=APP.watch.find(x=>x.id===d.watch);if(!w)return;w[d.f]=td.textContent.trim();}
+  else if(d.watch){const w=APP.watch.find(x=>x.id===d.watch);if(!w)return;if(['pe','high52','low52','yield','price'].includes(d.f))w[d.f]=num(td.textContent);else w[d.f]=td.textContent.trim();}
   else if(d.prop){const p=APP.props.find(x=>x.id===d.prop);if(!p)return;if(d.f==='name'||d.f==='note')p[d.f]=td.textContent.trim();else p[d.f]=num(td.textContent);}
 });
 document.addEventListener('blur',e=>{const td=e.target.closest&&e.target.closest('td[contenteditable]');if(!td)return;const d=td.dataset;
@@ -955,29 +891,32 @@ document.addEventListener('click',e=>{
 function renderGuide(){
   $('guideBody').innerHTML=`
   <div class="card section-card guide"><h2>📖 แอปนี้ทำงานยังไง</h2>
-  <p>แอปเดียวจบทุกมิติการเงินส่วนบุคคล 6 แท็บ: <b>ความมั่งคั่ง</b> (รวยขึ้น/จนลง + สุขภาพการเงิน) · <b>พอร์ตลงทุน</b> · <b>Trading Journal</b> (กระดานหุ้นที่สนใจ) · <b>รายรับ-รายจ่าย</b> · <b>ทรัพย์สิน</b> · <b>คู่มือ</b> · ทุกอย่างคำนวณเชื่อมกัน · ธีมดำ · เปิดได้ทุกอุปกรณ์</p>
+  <p>แอปเดียวจบทุกมิติการเงินส่วนบุคคล 6 แท็บ: <b>ความมั่งคั่ง</b> (รวยขึ้น/จนลง + สุขภาพการเงิน) · <b>พอร์ตลงทุน</b> · <b>Trading Journal</b> · <b>รายรับ-รายจ่าย</b> · <b>สินทรัพย์</b> · <b>คู่มือ</b> · ทุกอย่างคำนวณเชื่อมกัน · ธีมดำ · เปิดได้ทุกอุปกรณ์</p>
   <p class="gnote">เพื่อการติดตามการเงินส่วนบุคคล ไม่ใช่คำแนะนำการลงทุน ภาษี หรือกฎหมาย</p></div>
 
+  <div class="card section-card guide"><h2>☁️ ราคา + สำรองข้อมูล ด้วย Google Sheet</h2>
+  <p><b>หัวใจของแอปคือปุ่ม "☁️ Sheet" บนหัว</b> — เชื่อมครั้งเดียว แอปจะ (1) <b>สำรองข้อมูลทั้งหมดขึ้น Google Sheet ชื่อ Wealth ของคุณอัตโนมัติ</b> ทุกครั้งที่แก้ เปิดจากมือถือ/คอมเครื่องไหนก็เห็นข้อมูลชุดเดียวกัน และ (2) <b>ดึงราคาหุ้น / ทอง / ค่าเงิน USD/THB / P/E / กรอบ 52 สัปดาห์ สดจากชีต</b> (สูตร GOOGLEFINANCE) — ค่าเงินอัปเดตเอง ไม่ต้องกรอก</p>
+  <p><b>ตั้งค่าครั้งแรก (ทำครั้งเดียว ~2 นาที):</b> เปิด Google Sheet ชื่อ <b>Wealth</b> → เมนู Extensions → Apps Script → วางโค้ดจากไฟล์ <b>Wealth-AppsScript-Code.gs</b> → Save → Deploy → New deployment → Web app (Execute as: Me · Who has access: Anyone) → ก๊อป URL ลงท้าย /exec → กดปุ่ม ☁️ Sheet ในแอป วาง URL แล้วเชื่อม</p>
+  <p class="gnote">ราคาจาก GOOGLEFINANCE ดีเลย์ ~20 นาที (ไม่ใช่เรียลไทม์วินาทีต่อวินาที) · ต้องเปิดแอปในเบราว์เซอร์จริง ไม่ใช่โหมดพรีวิว</p></div>
+
   <div class="card section-card guide"><h2>🔢 ตัวเลขมาจากไหน & การเก็บข้อมูล</h2>
-  <p><b>ราคาหุ้น/ค่าเงิน — กด "🔄 รีเฟรชราคาสด" ในแท็บพอร์ตหรือ Journal ได้เลย</b> ระบบดึงค่าเงิน USD/THB (จาก open.er-api.com) และราคาหุ้น US (จาก Stooq) แบบสด ไม่ต้องตั้ง Sheet · <b>ข้อควรรู้:</b> ต้องเปิดแอปในเบราว์เซอร์จริง (ไม่ใช่โหมดพรีวิว) fetch ถึงทำงาน · บางเครือข่ายอาจบล็อก Stooq (ค่าเงินยังได้อยู่) — ถ้าเจอให้เปิดผ่านลิงก์เว็บ · หุ้นไทยกับ P/E ยังต้องกรอกเอง/ต่อ Google Sheet</p>
-  <p><b>ทางเลือก Google Sheet (นิ่งสุด):</b> ทำไฟล์ Sheet สูตร GOOGLEFINANCE → publish แท็บ FEED เป็น CSV → วาง URL ช่อง "🔗" กด "เชื่อม Sheet" · Journal ใช้ Sheet ที่ 2 (sym,price,pe,high52,low52,yield) เพื่อได้ P/E + 52wk</p>
-  <p><b>ยอด กบข./สหกรณ์/ทอง</b> ดูจากแอปนั้นๆ (My GPF / แอปสหกรณ์ / MTS-GOLD) มากรอกในแท็บพอร์ต · <b>เงินสด</b> คำนวณเองจากรายรับ-รายจ่าย · <b>ราคาไม่ real-time</b> GOOGLEFINANCE ดีเลย์ ~20 นาที</p>
-  <p><b>บันทึกอัตโนมัติในเบราว์เซอร์</b> — เมื่อเปิดจากลิงก์เว็บ (เช่น GitHub Pages) ข้อมูลทุกอย่างเซฟเองในเบราว์เซอร์ (localStorage) ทุกการแก้ ปิดแล้วเปิดใหม่ข้อมูลยังอยู่ · <b>Export/Import .json</b> ยังมีไว้สำรอง/ย้ายเครื่อง/ส่งต่อ · <b>↺ เริ่มใหม่</b> ล้างทั้งข้อมูลในหน้าและที่เซฟไว้ · ข้อมูลอยู่ในเครื่องคุณเท่านั้น ไม่ขึ้น cloud ของใคร (ยกเว้นถ้าคุณตั้ง Google Sheet เอง)</p></div>
+  <p><b>ยอด กบข. / สหกรณ์ / ทอง</b> ดูจากแอปนั้นๆ (My GPF / แอปสหกรณ์ / MTS-GOLD) มากรอก/กด "+ เติม" ในแท็บพอร์ต — อสังหามักคงมูลค่า/ขึ้น รถมักเสื่อม อัปเดตมูลค่าประเมินเป็นระยะ · <b>เงินสด</b> คำนวณเองจากรายรับ-รายจ่าย · <b>ราคาหุ้น/P/E/52wk</b> ซิงค์จาก ☁️ Sheet (หรือพิมพ์เองในตาราง Watchlist ก็ได้)</p>
+  <p><b>บันทึกอัตโนมัติ 2 ชั้น:</b> ในเบราว์เซอร์ (localStorage) เซฟทุกการแก้ + ขึ้น Google Sheet ถ้าเชื่อม ☁️ ไว้ · <b>Export/Import .json</b> ไว้สำรอง/ย้ายเครื่องแบบไฟล์เดียว · <b>↺ เริ่มใหม่</b> ล้างข้อมูลทั้งหมด + ยกเลิกการเชื่อมชีต (สำหรับคนที่รับแอปไปใช้ต่อ)</p></div>
 
   <div class="card section-card guide"><h2>✍️ วิธีใช้แต่ละแท็บ</h2>
-  <p><b>🏆 ความมั่งคั่ง</b> — ไม่ต้องกรอก มันรวมให้เอง (ทุกสินทรัพย์ + เงินสด + ส่วนของทรัพย์สิน) · กราฟบันทึกอัตโนมัติทุกวันที่เปิด เลือกช่วง 1สัปดาห์–ตั้งแต่เริ่ม · กล่องแยกตามชนิด (กบข./สหกรณ์/ทอง/หุ้น/เงินสด/ทรัพย์สิน) พร้อมกำไรแต่ละชนิด · สุขภาพการเงิน (คะแนน+อัตราส่วน) อยู่ล่างสุด</p>
-  <p><b>📊 พอร์ตลงทุน</b> — กล่อง กบข./สหกรณ์/ทอง แยกกัน มีปุ่ม "+ เติม" เพิ่มเงินต้นทุกเดือน · <b>หุ้นเป็นระบบบันทึกซื้อ-ขาย</b>: กด "+ บันทึกซื้อ/ขาย" ใส่ วันที่/ซื้อหรือขาย/สัญลักษณ์/สกุล/จำนวน/ราคา/<b>ค่าเงินตอนเทรด</b>(USD กรอกเอง เพราะแต่ละครั้งไม่เท่ากัน)/ค่าธรรมเนียม → ระบบคำนวณ <b>ต้นทุนเฉลี่ย + กำไรยังไม่ขาย (unrealized) + กำไรที่ขายแล้ว (realized)</b> ให้อัตโนมัติ · ปันผลไม่ต้องกรอก มีข้อมูลให้ · รองรับหุ้นไทย (เลือกสกุล THB) · ราคาปัจจุบันมาจากปุ่มรีเฟรชราคาสด/Sheet หรือแก้เองในช่องราคา · การ์ด "สรุปต้นทุน-ผลตอบแทน" รวมปันผล ภาษี ดอกเบี้ยเงินฝาก ค่าธรรมเนียมสะสม</p>
-  <p><b>📈 Trading Journal</b> — กระดานหุ้นที่สนใจ: เพิ่ม ticker ใน Watchlist → เชื่อม Sheet ที่ 2 ดึงราคา/P/E/52wk มาโชว์ · กรอกวันงบ/วันขึ้น XD/ราคาเป้าเอง → ขึ้นปฏิทินวันสำคัญ + Insights (P/E สูง/ต่ำ, ใกล้ high/low) · Trade Log บันทึกการเทรดจริง · ทั้งหมดเป็นข้อมูลประกอบการตัดสินใจ ไม่ใช่สัญญาณซื้อขาย</p>
-  <p><b>💸 รายรับ-รายจ่าย</b> — <b>นับรอบตามวันเงินเดือน</b> (ลงเงินเดือนวันไหน = เริ่มรอบนั้น) · จดทีละรายการ เพิ่มหมวดเองได้ (+หมวด) · จ่ายบัตรเครดิต = ใส่วันครบกำหนด+งวด → กลายเป็น "หนี้ที่ต้องชำระ" ในรอบที่ครบกำหนด · กล่อง: รับ/จ่าย/ออม/หนี้ต้องชำระ/คงเหลือ · กราฟหมวด+วิธีจ่าย (มี %) · Waterfall เงินไหล + เทียบหลายรอบ (3/6/12/60)</p>
-  <p><b>🏠 ทรัพย์สิน</b> — บ้าน/คอนโด/ที่ดิน/รถ ใส่มูลค่า + หนี้คงเหลือ (ถ้ายังผ่อน) → ระบบคิด "ส่วนของเรา" = มูลค่า−หนี้ นับเข้าความมั่งคั่ง · ตีเป็นสินทรัพย์ได้แม้ยังผ่อน · ยอดผ่อนต่อเดือนไปใส่ในรายรับ-รายจ่ายเพื่อคิด DTI</p></div>
+  <p><b>🏆 ความมั่งคั่ง</b> — ไม่ต้องกรอก รวมให้เอง = ทุกสินทรัพย์ + เงินสด + ส่วนของสินทรัพย์ − หนี้ · กราฟบันทึกอัตโนมัติทุกวันที่เปิด เลือกช่วง 1 สัปดาห์–ตั้งแต่เริ่ม · การ์ดบน = มูลค่าสุทธิ, ถัดมา = กำไรรวม + เปลี่ยนแปลงเดือนล่าสุด, ถัดมา = แยกตามชนิด (กบข./สหกรณ์/ทอง/หุ้น/เงินสด/สินทรัพย์) · สุขภาพการเงิน (คะแนน 0–100 + อัตราส่วนหลัก) อยู่ล่างสุด</p>
+  <p><b>📊 พอร์ตลงทุน</b> — การ์ดบนสุด "สรุปต้นทุน-ผลตอบแทน" 2 แถว: <i>แถวแรก</i> มูลค่ารวมปัจจุบัน · ต้นทุนรวม · กำไร(จากราคา) · ปันผลที่คาดหวัง/ปี · <i>แถวสอง</i> กำไรจากค่าเงิน · ดอกเบี้ยรับปีนี้ · ภาษีปันผล(ประมาณ) · ค่าธรรมเนียมซื้อขายหุ้น (ดอกเบี้ย/ภาษีดึงจากรายรับ-รายจ่าย, ค่าธรรมเนียมดึงจากบันทึกซื้อ-ขาย) · กล่องถัดมารวม กบข./สหกรณ์/ทอง (กด "+ เติม" ทุกเดือน) กับกราฟมูลค่าตามชนิด/กลุ่ม · <b>หุ้นเป็นระบบบันทึกซื้อ-ขาย</b>: "+ บันทึกซื้อ/ขาย" ใส่วันที่/ซื้อหรือขาย/สัญลักษณ์/สกุล/จำนวน/ราคา/ค่าเงินตอนเทรด(USD กรอกเอง)/ค่าธรรมเนียม → ได้ต้นทุนเฉลี่ย + กำไรอัตโนมัติ · ปันผลไม่ต้องกรอก มีข้อมูลให้ · รายการซื้อ-ขายเก็บ & ดูย้อนหลังได้ในชีต Google (แท็บ STATE)</p>
+  <p><b>📈 Trading Journal</b> — <b>แผนรายตัว</b>: เพิ่มหุ้นที่สนใจ → แอปคำนวณ "สัญญาณ" จากตำแหน่งราคาในกรอบ 52 สัปดาห์ + P/E เทียบเป้า (เขียว=ช่วงล่างกรอบ, แดง=ใกล้จุดสูง) แล้วคุณพิมพ์ "แผนของฉัน" เอง · <b>สถิติการเทรด</b> (Net P&L, Win Rate, Profit Factor ฯลฯ พร้อมคำอธิบายในปุ่ม ℹ️) จะขึ้นถ้าเปิดส่วน "บันทึกเทรดจริง" แล้วลงไม้ · <b>ปฏิทิน P&L รายวัน</b> ระบายสีวันที่ปิดไม้ (เขียว=กำไร แดง=ขาดทุน) + วันสำคัญข้างหน้า (วันงบ/ขึ้น XD) อยู่ด้วยกัน · ทั้งหมดเป็นข้อมูลประกอบ ไม่ใช่สัญญาณซื้อขาย</p>
+  <p><b>💸 รายรับ-รายจ่าย</b> — <b>นับรอบตามวันเงินเดือน</b> (ลงเงินเดือนวันไหน = เริ่มรอบนั้น) · จดทีละรายการ เพิ่มหมวดเองได้ (+หมวด) · จ่ายบัตรเครดิต = ใส่วันครบกำหนด+งวด → กลายเป็น "หนี้ที่ต้องชำระ" ในรอบที่ครบกำหนด · กราฟหมวด+วิธีจ่าย (มี %) · Waterfall "เงินเดือนไหลไปไหน" (รายรับ → จ่ายสด → ออม → หนี้ → คงเหลือ พร้อม % ของรายรับ) + เทียบหลายรอบ (3/6/12/60)</p>
+  <p><b>🏠 สินทรัพย์</b> — บ้าน/คอนโด/ที่ดิน/รถ ใส่มูลค่า + หนี้คงเหลือ (ถ้ายังผ่อน) → ระบบคิด "ส่วนของเรา" = มูลค่า − หนี้ นับเข้าความมั่งคั่ง (ตีเป็นสินทรัพย์ได้แม้ยังผ่อน) · ยอดผ่อนต่อเดือนของหนี้ก้อนนี้ไปใส่ในแท็บรายรับ-รายจ่ายเพื่อคิดภาระหนี้ (DTI)</p></div>
 
   <div class="card section-card guide"><h2>🔍 ก่อนซื้อหุ้นเพิ่ม ดูอะไร</h2>
-  <p>① ราคาอยู่ตรงไหนของกรอบ 52 สัปดาห์ (คอลัมน์ %จาก Low52 ใน Watchlist) · ② P/E เทียบอดีต/คู่แข่ง · ③ งบล่าสุดโตจริงไหม · ④ ขนาด position เทียบพอร์ตรวม · ⑤ ซ้ำกับที่ถืออยู่ไหม (เช่น QQQ ซ้ำ NVDA)</p>
+  <p>① ราคาอยู่ตรงไหนของกรอบ 52 สัปดาห์ (คอลัมน์ %กรอบ ใน Watchlist) · ② P/E เทียบอดีต/คู่แข่ง · ③ งบล่าสุดโตจริงไหม · ④ ขนาด position เทียบพอร์ตรวม · ⑤ ซ้ำกับที่ถืออยู่ไหม (เช่น QQQ ซ้ำ NVDA) · <b>สัญญาณในแผนรายตัว:</b> ราคาช่วงล่างกรอบ + P/E ไม่แพง = อาจเป็นโซนสะสม · ใกล้จุดสูง + P/E สูง = ระวังไล่ราคา — เป็นข้อมูลประกอบ ไม่ใช่คำแนะนำ</p>
   <p><b>DCA</b> เหมาะสายเชื่อระยะยาว ไม่จับจังหวะ · <b>Options</b> เหมาะมีมุมมองชัดกรอบสั้น ยอมเสีย premium ทั้งก้อนได้ · แหล่งข้อมูลฟรี: Yahoo Finance, Finviz, TradingView</p></div>
 
   <div class="card section-card guide"><h2>🎁 ส่งต่อ/ขายแอปนี้ให้คนอื่น</h2>
-  <p>แอปนี้ออกแบบให้ generic — ไม่ผูกกับใครคนเดียว · คนที่รับไปกด <b>"↺ เริ่มใหม่"</b> บนหัวเพื่อล้างข้อมูลตัวอย่างทั้งหมด แล้วเปลี่ยนชื่อเจ้าของ (แตะที่ป้ายชื่อบนหัว) · กรอกข้อมูลตัวเอง เชื่อม Google Sheet ของตัวเอง · โครงสร้างพอร์ต (กลุ่มหุ้น) แก้ได้อิสระ · เก็บ/ย้ายข้อมูลด้วย Export/Import ไฟล์เดียว</p>
-  <p class="gnote">แนะนำโฮสต์เป็นลิงก์ (Netlify/GitHub Pages) จะเปิดบนมือถือง่ายและราคาจาก Sheet ดึงได้ชัวร์</p></div>`;
+  <p>แอปนี้ออกแบบให้ generic — ไม่ผูกกับใครคนเดียว · คนที่รับไปกด <b>"↺ เริ่มใหม่"</b> บนหัวเพื่อล้างข้อมูลตัวอย่าง + ยกเลิกการเชื่อมชีตเดิม แล้วเปลี่ยนชื่อเจ้าของ (แตะที่ป้ายชื่อบนหัว) · กรอกข้อมูลตัวเอง เชื่อม Google Sheet ของตัวเอง · โครงสร้างพอร์ต (กลุ่มหุ้น) แก้ได้อิสระ · เก็บ/ย้ายข้อมูลด้วย Export/Import ไฟล์เดียว</p>
+  <p class="gnote">แนะนำโฮสต์เป็นลิงก์ (Netlify/GitHub Pages) จะเปิดบนมือถือง่ายและซิงค์ Google Sheet ได้ชัวร์</p></div>`;
 }
 
 // ==================== TABS / EXPORT / RESET ====================
@@ -989,7 +928,7 @@ $('fileImport').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new
 $('btnReset').onclick=()=>{if(confirm('ล้างข้อมูลทั้งหมดเริ่มใหม่? (Export เก็บก่อนถ้ายังไม่เซฟ)')){try{localStorage.removeItem('kornFinanceV1');localStorage.removeItem('kornSyncUrl');}catch(e){}SYNC_URL='';cloudBadge();APP={owner:'คุณ',fx:33.62,cashStart:0,priceSheetUrl:'',journalSheetUrl:'',syncUrl:'',priceUpdated:'',history:[],gbx:{value:0,cost:0,note:''},coop:{value:0,cost:0,note:''},gold:{value:0,cost:0,note:''},priceNow:{},divYield:{},symGroup:{},stockTx:[],watch:[],trades:[],cats:JSON.parse(JSON.stringify(DEFAULT_APP.cats)),tx:[],props:[]};initInputs();renderWealth();document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('on',i===0));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-wealth'));}};
 $('owner').onclick=()=>{const n=prompt('ชื่อเจ้าของ:',APP.owner);if(n){APP.owner=n.trim();$('owner').textContent=n.trim();}};
 $('fx').addEventListener('input',()=>{APP.fx=parseFloat($('fx').value)||33.62;const c=document.querySelector('.tab.on').dataset.tab;if(renderers[c])renderers[c]();});
-function initInputs(){$('fx').value=APP.fx;$('owner').textContent=APP.owner;$('feedUrl').value=APP.priceSheetUrl||'';$('jFeedUrl').value=APP.journalSheetUrl||'';if($('cloudUrl'))$('cloudUrl').value=(typeof SYNC_URL!=='undefined'?SYNC_URL:'')||'';}
+function initInputs(){$('fx').value=APP.fx;$('owner').textContent=APP.owner;if($('feedUrl'))$('feedUrl').value=APP.priceSheetUrl||'';if($('jFeedUrl'))$('jFeedUrl').value=APP.journalSheetUrl||'';if($('cloudUrl'))$('cloudUrl').value=(typeof SYNC_URL!=='undefined'?SYNC_URL:'')||'';}
 $('foot').innerHTML='หมายเหตุ ที่มา และวิธีใช้ทั้งหมดอยู่ในแท็บ 📖 คู่มือ · เพื่อการติดตามส่วนบุคคล ไม่ใช่คำแนะนำการลงทุน';
 
 // ==================== บันทึกอัตโนมัติในเบราว์เซอร์ (localStorage) ====================
@@ -998,22 +937,31 @@ let _svT;function scheduleSave(){clearTimeout(_svT);_svT=setTimeout(saveState,60
 addEventListener('input',scheduleSave,true);
 addEventListener('click',scheduleSave,true);
 addEventListener('beforeunload',saveState);
+// อัปเกรด watchlist เก่าที่ยังว่าง (ไม่มีราคา/PE) → ใช้ชุดเริ่มต้นใหม่ที่มีข้อมูลจริง
+function migrateWatch(){try{if(!APP.watch||!APP.watch.length||APP.watch.every(w=>!w.price&&!w.pe))APP.watch=JSON.parse(JSON.stringify(DEFAULT_APP.watch));}catch(e){}}
 try{const s=localStorage.getItem('kornFinanceV1');if(s){const d=JSON.parse(s);if(d&&d.gbx)APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),d);}}catch(e){}
+migrateWatch();
 
 // ==================== ☁️ ซิงค์ Google Sheet (Apps Script backend) ====================
 let SYNC_URL='';try{SYNC_URL=localStorage.getItem('kornSyncUrl')||'';}catch(e){}
 let _pushT,_pulling=false;
 function cloudStatus(t){const el=$('cloudStat');if(el)el.innerHTML=t;}
 function cloudBadge(){const b=$('btnCloud');if(!b)return;if(SYNC_URL){b.textContent='☁️ ✓';b.style.color='var(--good-text)';b.title='เชื่อม Google Sheet แล้ว — ซิงค์อัตโนมัติ';}else{b.textContent='☁️ Sheet';b.style.color='';b.title='เชื่อม Google Sheet — สำรองข้อมูล + ดึงราคาสดอัตโนมัติ';}}
-// นำราคาจากชีต { USDTHB, XAUUSD, SYM:price } มาใส่ APP
-function applyPrices(p){if(!p)return 0;let n=0;Object.keys(p).forEach(k=>{const v=parseFloat(p[k]);if(isNaN(v))return;if(k==='USDTHB'){APP.fx=Math.round(v*100)/100;if($('fx'))$('fx').value=APP.fx;n++;}else if(k==='XAUUSD'){APP.goldSpot=v;n++;}else{APP.priceNow[k]=v;(APP.watch||[]).forEach(w=>{if((w.sym||'').toUpperCase()===k)w.price=v;});n++;}});if(n){const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}return n;}
+// นำราคาจากชีต { USDTHB, XAUUSD, SYM:price, "SYM~PE":.., "SYM~HI":.., "SYM~LO":.., "SYM~YLD":.. } มาใส่ APP
+const WFIELD={PE:'pe',HI:'high52',LO:'low52',YLD:'yield'};
+function applyPrices(p){if(!p)return 0;let n=0;Object.keys(p).forEach(k=>{const v=parseFloat(p[k]);if(isNaN(v))return;
+  if(k==='USDTHB'){APP.fx=Math.round(v*100)/100;if($('fx'))$('fx').value=APP.fx;n++;}
+  else if(k==='XAUUSD'){APP.goldSpot=v;n++;}
+  else if(k.indexOf('~')>0){const[sym,f]=k.split('~');const field=WFIELD[f];if(!field)return;(APP.watch||[]).forEach(w=>{if((w.sym||'').toUpperCase()===sym.toUpperCase())w[field]=v;});}
+  else{APP.priceNow[k]=v;(APP.watch||[]).forEach(w=>{if((w.sym||'').toUpperCase()===k)w.price=v;});n++;}});
+  if(n){const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}return n;}
 function rerender(){const cur=document.querySelector('.tab.on');if(cur&&renderers[cur.dataset.tab])renderers[cur.dataset.tab]();}
 // ดึง state + ราคา จากชีต (GET)
 async function cloudPull(){if(!SYNC_URL){cloudStatus('ยังไม่ได้ใส่ URL');return false;}_pulling=true;cloudStatus('⏳ กำลังดึงจากชีต…');try{
   const r=await fetch(SYNC_URL+(SYNC_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store',redirect:'follow'});
   const j=await r.json();
   if(j&&j.state&&j.state.gbx){
-    APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),j.state);APP.syncUrl=SYNC_URL;
+    APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),j.state);APP.syncUrl=SYNC_URL;migrateWatch();
     const n=applyPrices(j.prices);initInputs();rerender();saveState();
     cloudStatus(`🟢 ดึงข้อมูลจากชีตแล้ว · ราคา ${n} ค่า · ${APP.priceUpdated||''}`);_pulling=false;return true;
   }else{ // ชีตยังว่าง → ตั้งต้นด้วยข้อมูลในเครื่อง
