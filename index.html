@@ -104,6 +104,7 @@
     <span class="badge" id="owner">KORN</span>
     <div class="toolbar">
       <span class="fx">USD/THB <input id="fx" type="number" step="0.01" value="33.62"></span>
+      <button id="btnCloud" title="เชื่อม Google Sheet — สำรองข้อมูล + ดึงราคาสดอัตโนมัติ">☁️ Sheet</button>
       <button id="btnExport">⬇ Export</button>
       <button id="btnImport">⬆ Import</button>
       <input type="file" id="fileImport" accept=".json" hidden>
@@ -158,6 +159,10 @@
     </div>
     <div class="tiles" id="pTiles"></div>
     <div class="card section-card">
+      <h2>💰 สรุปต้นทุน-ผลตอบแทน <span class="tag">· ต่อปี (ประมาณการ) · ปันผลผมหาให้ ไม่ต้องกรอก</span></h2>
+      <div class="tiles" id="costTiles" style="margin:0"></div>
+    </div>
+    <div class="card section-card">
       <h2>สินทรัพย์รายชนิด (บาท) <span class="tag">· กบข. / สหกรณ์ / ทอง — มูลค่าปัจจุบัน & เงินต้นสะสม (เงินสดไปอยู่ในรายรับ-รายจ่าย)</span></h2>
       <div class="table-scroll"><table id="assetTbl"></table></div>
     </div>
@@ -169,10 +174,6 @@
     <div class="card section-card">
       <h2>บันทึกการซื้อ-ขาย <span class="tag">· รายการที่คุณกดบันทึกเอง (มี FX ตอนเทรด + ค่าธรรมเนียม)</span></h2>
       <div class="table-scroll"><table id="stxTbl"></table></div>
-    </div>
-    <div class="card section-card">
-      <h2>💰 สรุปต้นทุน-ผลตอบแทน <span class="tag">· ต่อปี (ประมาณการ) · ปันผลผมหาให้ ไม่ต้องกรอก</span></h2>
-      <div class="tiles" id="costTiles" style="margin:0"></div>
     </div>
     <div class="cards">
       <div class="card"><h2>กำไร/ขาดทุนรายตัว <span class="tag">· บาท</span></h2><div id="gainChart"></div></div>
@@ -326,11 +327,40 @@
   <div class="form-actions"><button value="cancel" formnovalidate>ยกเลิก</button><button class="primary" value="save">บันทึก</button></div>
 </form></dialog>
 
+<dialog id="dlgCloud"><h2 style="margin:0 0 4px;font-size:16px">☁️ เชื่อม Google Sheet (สำรอง + ราคาสด)</h2>
+  <p style="margin:0 0 12px;font-size:12px;color:var(--muted);line-height:1.55">
+    เก็บข้อมูลทั้งหมดไว้บน Google Sheet ชื่อ <b>Wealth</b> ของคุณ — เปิดจากเครื่องไหน มือถือ/คอม ก็เห็นข้อมูลชุดเดียวกัน
+    และดึงราคาหุ้น/ทอง/ค่าเงินสดจากชีต (GOOGLEFINANCE) อัตโนมัติ เหมือนแอปสุขภาพที่ซิงค์ขึ้นคลาวด์
+  </p>
+  <div class="form-grid">
+    <label class="full">Web app URL (ลงท้าย /exec)
+      <input id="cloudUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>
+  </div>
+  <div id="cloudStat" style="font-size:12px;color:var(--muted);margin:8px 0 4px">ยังไม่ได้เชื่อม</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+    <button class="mini primary" id="cloudConnect" type="button">🔗 เชื่อม &amp; ดึงข้อมูลลงเครื่อง</button>
+    <button class="mini" id="cloudPush" type="button">⬆ ดันข้อมูลขึ้นชีต</button>
+    <button class="mini" id="cloudPull" type="button">⬇ ดึงจากชีต</button>
+    <button class="mini" id="cloudOff" type="button" style="color:var(--bad-text)">✕ หยุดซิงค์</button>
+  </div>
+  <details style="margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.6">
+    <summary style="cursor:pointer;color:var(--fg)">วิธีตั้งค่าครั้งแรก (ทำครั้งเดียว ~2 นาที)</summary>
+    <ol style="margin:8px 0 0;padding-left:18px">
+      <li>เปิด Google Sheet ชื่อ <b>Wealth</b> → เมนู <b>Extensions → Apps Script</b></li>
+      <li>วางโค้ดจากไฟล์ <b>Wealth-AppsScript-Code.gs</b> ที่ผมส่งให้ → กด 💾 Save</li>
+      <li><b>Deploy → New deployment → Web app</b> · Execute as: <b>Me</b> · Who has access: <b>Anyone</b></li>
+      <li>อนุญาตสิทธิ์ แล้วก๊อป <b>Web app URL</b> (ลงท้าย /exec) มาวางช่องด้านบน → กดเชื่อม</li>
+      <li>แก้โค้ดภายหลัง: Deploy → Manage deployments → แก้ version เป็น <b>New version</b> ทุกครั้ง</li>
+    </ol>
+  </details>
+  <div class="form-actions"><button value="cancel" type="button" onclick="this.closest('dialog').close()">ปิด</button></div>
+</dialog>
+
 <script>
 // ==================== STATE ====================
 const DEFAULT_APP = {
   owner:'KORN', fx:33.62, cashStart:32000,
-  priceSheetUrl:'', journalSheetUrl:'', priceUpdated:'',
+  priceSheetUrl:'', journalSheetUrl:'', syncUrl:'', priceUpdated:'',
   history:[
     {date:'2026-03-31',net:1052000},{date:'2026-04-30',net:1071000},
     {date:'2026-05-31',net:1090000},{date:'2026-06-30',net:1104000}
@@ -932,7 +962,7 @@ function renderGuide(){
   <p><b>ราคาหุ้น/ค่าเงิน — กด "🔄 รีเฟรชราคาสด" ในแท็บพอร์ตหรือ Journal ได้เลย</b> ระบบดึงค่าเงิน USD/THB (จาก open.er-api.com) และราคาหุ้น US (จาก Stooq) แบบสด ไม่ต้องตั้ง Sheet · <b>ข้อควรรู้:</b> ต้องเปิดแอปในเบราว์เซอร์จริง (ไม่ใช่โหมดพรีวิว) fetch ถึงทำงาน · บางเครือข่ายอาจบล็อก Stooq (ค่าเงินยังได้อยู่) — ถ้าเจอให้เปิดผ่านลิงก์เว็บ · หุ้นไทยกับ P/E ยังต้องกรอกเอง/ต่อ Google Sheet</p>
   <p><b>ทางเลือก Google Sheet (นิ่งสุด):</b> ทำไฟล์ Sheet สูตร GOOGLEFINANCE → publish แท็บ FEED เป็น CSV → วาง URL ช่อง "🔗" กด "เชื่อม Sheet" · Journal ใช้ Sheet ที่ 2 (sym,price,pe,high52,low52,yield) เพื่อได้ P/E + 52wk</p>
   <p><b>ยอด กบข./สหกรณ์/ทอง</b> ดูจากแอปนั้นๆ (My GPF / แอปสหกรณ์ / MTS-GOLD) มากรอกในแท็บพอร์ต · <b>เงินสด</b> คำนวณเองจากรายรับ-รายจ่าย · <b>ราคาไม่ real-time</b> GOOGLEFINANCE ดีเลย์ ~20 นาที</p>
-  <p><b>ข้อมูลอยู่ในเครื่องคุณเท่านั้น</b> (ไม่ขึ้น cloud) การแก้อยู่ชั่วคราวในหน้า — <b>กด Export เก็บไฟล์ .json</b> ก่อนปิดทุกครั้ง เปิดใหม่กด Import ดึงกลับ</p></div>
+  <p><b>บันทึกอัตโนมัติในเบราว์เซอร์</b> — เมื่อเปิดจากลิงก์เว็บ (เช่น GitHub Pages) ข้อมูลทุกอย่างเซฟเองในเบราว์เซอร์ (localStorage) ทุกการแก้ ปิดแล้วเปิดใหม่ข้อมูลยังอยู่ · <b>Export/Import .json</b> ยังมีไว้สำรอง/ย้ายเครื่อง/ส่งต่อ · <b>↺ เริ่มใหม่</b> ล้างทั้งข้อมูลในหน้าและที่เซฟไว้ · ข้อมูลอยู่ในเครื่องคุณเท่านั้น ไม่ขึ้น cloud ของใคร (ยกเว้นถ้าคุณตั้ง Google Sheet เอง)</p></div>
 
   <div class="card section-card guide"><h2>✍️ วิธีใช้แต่ละแท็บ</h2>
   <p><b>🏆 ความมั่งคั่ง</b> — ไม่ต้องกรอก มันรวมให้เอง (ทุกสินทรัพย์ + เงินสด + ส่วนของทรัพย์สิน) · กราฟบันทึกอัตโนมัติทุกวันที่เปิด เลือกช่วง 1สัปดาห์–ตั้งแต่เริ่ม · กล่องแยกตามชนิด (กบข./สหกรณ์/ทอง/หุ้น/เงินสด/ทรัพย์สิน) พร้อมกำไรแต่ละชนิด · สุขภาพการเงิน (คะแนน+อัตราส่วน) อยู่ล่างสุด</p>
@@ -956,14 +986,59 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 $('btnExport').onclick=()=>{const b=new Blob([JSON.stringify(APP,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ศูนย์การเงิน-ข้อมูล.json';a.click();};
 $('btnImport').onclick=()=>$('fileImport').click();
 $('fileImport').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d&&d.gbx){APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),d);initInputs();renderers[document.querySelector('.tab.on').dataset.tab]();if(APP.priceSheetUrl)fetchPrices();}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};rd.readAsText(f);};
-$('btnReset').onclick=()=>{if(confirm('ล้างข้อมูลทั้งหมดเริ่มใหม่? (Export เก็บก่อนถ้ายังไม่เซฟ)')){APP={owner:'คุณ',fx:33.62,cashStart:0,priceSheetUrl:'',journalSheetUrl:'',priceUpdated:'',history:[],gbx:{value:0,cost:0,note:''},coop:{value:0,cost:0,note:''},gold:{value:0,cost:0,note:''},priceNow:{},divYield:{},symGroup:{},stockTx:[],watch:[],trades:[],cats:JSON.parse(JSON.stringify(DEFAULT_APP.cats)),tx:[],props:[]};initInputs();renderWealth();document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('on',i===0));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-wealth'));}};
+$('btnReset').onclick=()=>{if(confirm('ล้างข้อมูลทั้งหมดเริ่มใหม่? (Export เก็บก่อนถ้ายังไม่เซฟ)')){try{localStorage.removeItem('kornFinanceV1');localStorage.removeItem('kornSyncUrl');}catch(e){}SYNC_URL='';cloudBadge();APP={owner:'คุณ',fx:33.62,cashStart:0,priceSheetUrl:'',journalSheetUrl:'',syncUrl:'',priceUpdated:'',history:[],gbx:{value:0,cost:0,note:''},coop:{value:0,cost:0,note:''},gold:{value:0,cost:0,note:''},priceNow:{},divYield:{},symGroup:{},stockTx:[],watch:[],trades:[],cats:JSON.parse(JSON.stringify(DEFAULT_APP.cats)),tx:[],props:[]};initInputs();renderWealth();document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('on',i===0));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-wealth'));}};
 $('owner').onclick=()=>{const n=prompt('ชื่อเจ้าของ:',APP.owner);if(n){APP.owner=n.trim();$('owner').textContent=n.trim();}};
 $('fx').addEventListener('input',()=>{APP.fx=parseFloat($('fx').value)||33.62;const c=document.querySelector('.tab.on').dataset.tab;if(renderers[c])renderers[c]();});
-function initInputs(){$('fx').value=APP.fx;$('owner').textContent=APP.owner;$('feedUrl').value=APP.priceSheetUrl||'';$('jFeedUrl').value=APP.journalSheetUrl||'';}
+function initInputs(){$('fx').value=APP.fx;$('owner').textContent=APP.owner;$('feedUrl').value=APP.priceSheetUrl||'';$('jFeedUrl').value=APP.journalSheetUrl||'';if($('cloudUrl'))$('cloudUrl').value=(typeof SYNC_URL!=='undefined'?SYNC_URL:'')||'';}
 $('foot').innerHTML='หมายเหตุ ที่มา และวิธีใช้ทั้งหมดอยู่ในแท็บ 📖 คู่มือ · เพื่อการติดตามส่วนบุคคล ไม่ใช่คำแนะนำการลงทุน';
 
+// ==================== บันทึกอัตโนมัติในเบราว์เซอร์ (localStorage) ====================
+function saveState(){try{localStorage.setItem('kornFinanceV1',JSON.stringify(APP));}catch(e){}}
+let _svT;function scheduleSave(){clearTimeout(_svT);_svT=setTimeout(saveState,600);scheduleCloud();}
+addEventListener('input',scheduleSave,true);
+addEventListener('click',scheduleSave,true);
+addEventListener('beforeunload',saveState);
+try{const s=localStorage.getItem('kornFinanceV1');if(s){const d=JSON.parse(s);if(d&&d.gbx)APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),d);}}catch(e){}
+
+// ==================== ☁️ ซิงค์ Google Sheet (Apps Script backend) ====================
+let SYNC_URL='';try{SYNC_URL=localStorage.getItem('kornSyncUrl')||'';}catch(e){}
+let _pushT,_pulling=false;
+function cloudStatus(t){const el=$('cloudStat');if(el)el.innerHTML=t;}
+function cloudBadge(){const b=$('btnCloud');if(!b)return;if(SYNC_URL){b.textContent='☁️ ✓';b.style.color='var(--good-text)';b.title='เชื่อม Google Sheet แล้ว — ซิงค์อัตโนมัติ';}else{b.textContent='☁️ Sheet';b.style.color='';b.title='เชื่อม Google Sheet — สำรองข้อมูล + ดึงราคาสดอัตโนมัติ';}}
+// นำราคาจากชีต { USDTHB, XAUUSD, SYM:price } มาใส่ APP
+function applyPrices(p){if(!p)return 0;let n=0;Object.keys(p).forEach(k=>{const v=parseFloat(p[k]);if(isNaN(v))return;if(k==='USDTHB'){APP.fx=Math.round(v*100)/100;if($('fx'))$('fx').value=APP.fx;n++;}else if(k==='XAUUSD'){APP.goldSpot=v;n++;}else{APP.priceNow[k]=v;(APP.watch||[]).forEach(w=>{if((w.sym||'').toUpperCase()===k)w.price=v;});n++;}});if(n){const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}return n;}
+function rerender(){const cur=document.querySelector('.tab.on');if(cur&&renderers[cur.dataset.tab])renderers[cur.dataset.tab]();}
+// ดึง state + ราคา จากชีต (GET)
+async function cloudPull(){if(!SYNC_URL){cloudStatus('ยังไม่ได้ใส่ URL');return false;}_pulling=true;cloudStatus('⏳ กำลังดึงจากชีต…');try{
+  const r=await fetch(SYNC_URL+(SYNC_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store',redirect:'follow'});
+  const j=await r.json();
+  if(j&&j.state&&j.state.gbx){
+    APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),j.state);APP.syncUrl=SYNC_URL;
+    const n=applyPrices(j.prices);initInputs();rerender();saveState();
+    cloudStatus(`🟢 ดึงข้อมูลจากชีตแล้ว · ราคา ${n} ค่า · ${APP.priceUpdated||''}`);_pulling=false;return true;
+  }else{ // ชีตยังว่าง → ตั้งต้นด้วยข้อมูลในเครื่อง
+    applyPrices(j&&j.prices);rerender();cloudStatus('ℹ️ ชีตยังว่าง — กำลังดันข้อมูลในเครื่องขึ้นไปตั้งต้น…');_pulling=false;await cloudPush(true);cloudStatus('🟢 เชื่อมแล้ว · ตั้งต้นข้อมูลบนชีตด้วยข้อมูลในเครื่อง');return true;
+  }
+}catch(e){_pulling=false;cloudStatus('🔴 ดึงไม่สำเร็จ: '+e.message+' — เช็ก URL /exec และสิทธิ์ Anyone');return false;}}
+// บันทึก state ขึ้นชีต (POST) + รับราคากลับมา
+async function cloudPush(silent){if(!SYNC_URL)return false;if(!silent)cloudStatus('⏳ กำลังบันทึกขึ้นชีต…');try{
+  const r=await fetch(SYNC_URL,{method:'POST',cache:'no-store',redirect:'follow',body:JSON.stringify(APP)});
+  const j=await r.json();
+  if(j&&j.ok){const n=applyPrices(j.prices);if(n){rerender();saveState();}const d=new Date();const ts=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;if(!silent)cloudStatus(`🟢 บันทึกขึ้นชีตแล้ว · ${ts}`+(n?` · ราคา ${n} ค่า`:''));return true;}
+  else{if(!silent)cloudStatus('🔴 ชีตปฏิเสธ: '+((j&&j.error)||'?'));return false;}
+}catch(e){if(!silent)cloudStatus('🔴 บันทึกไม่สำเร็จ: '+e.message);return false;}}
+function scheduleCloud(){if(!SYNC_URL||_pulling)return;clearTimeout(_pushT);_pushT=setTimeout(()=>cloudPush(true),2500);}
+// ปุ่มต่างๆ
+$('btnCloud').onclick=()=>{if($('cloudUrl'))$('cloudUrl').value=SYNC_URL;cloudStatus(SYNC_URL?('🟢 เชื่อมอยู่: '+SYNC_URL.slice(0,46)+(SYNC_URL.length>46?'…':'')):'ยังไม่ได้เชื่อม — วาง URL แล้วกดเชื่อม');$('dlgCloud').showModal();};
+$('cloudConnect').onclick=async()=>{const u=($('cloudUrl').value||'').trim();if(!/^https:\/\/script\.google\.com\/.*\/exec$/.test(u)){cloudStatus('🔴 URL ต้องเป็นของ Apps Script และลงท้าย /exec');return;}SYNC_URL=u;try{localStorage.setItem('kornSyncUrl',u);}catch(e){}APP.syncUrl=u;cloudBadge();await cloudPull();};
+$('cloudPush').onclick=()=>cloudPush(false);
+$('cloudPull').onclick=()=>cloudPull();
+$('cloudOff').onclick=()=>{SYNC_URL='';try{localStorage.removeItem('kornSyncUrl');}catch(e){}APP.syncUrl='';cloudBadge();cloudStatus('หยุดซิงค์แล้ว (ข้อมูลบนชีตยังอยู่)');};
+
 initInputs();
-if(APP.priceSheetUrl)fetchPrices();
+cloudBadge();
+if(SYNC_URL)cloudPull();
+else if(APP.priceSheetUrl)fetchPrices();
 renderWealth();
 </script>
 </body>
