@@ -2,7 +2,13 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ศูนย์การเงิน">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <title>ศูนย์การเงินส่วนบุคคล</title>
 <style>
   :root{color-scheme:dark;
@@ -10,7 +16,7 @@
     --grid:#2c2c2a;--baseline:#383835;--border:rgba(255,255,255,.10);
     --win:#0ca30c;--loss:#e66767;--accent:#3987e5;--gold:#c98500;--violet:#9085e9;--aqua:#199e70;
     --good-text:#0ca30c;--bad-text:#e66767;--chip-bg:#383835;--warn-bg:#2a2410;
-    --win-soft:rgba(12,163,12,.18);--loss-soft:rgba(230,103,103,.18);--warn-soft:rgba(201,133,0,.20);}
+    --win-soft:rgba(12,163,12,.18);--loss-soft:rgba(230,103,103,.18);--warn-soft:rgba(201,133,0,.20);--surface-2:#242423;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--page);color:var(--ink-1);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai",sans-serif;font-size:14px;line-height:1.5}
   .wrap{max-width:1280px;margin:0 auto;padding:16px 16px 60px}
@@ -123,6 +129,33 @@
   .cal-cell.loss{background:var(--loss-soft)}.cal-cell.loss .pnl{color:var(--bad-text)}
   #tip{position:fixed;z-index:50;pointer-events:none;display:none;background:var(--surface-1);color:var(--ink-1);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.4);padding:8px 10px;font-size:12px;white-space:nowrap}
   footer{margin-top:24px;color:var(--muted);font-size:12px;border-top:1px solid var(--grid);padding-top:12px}
+  /* แถบแจ้งเตือนราคาแตะเป้า */
+  .alertbar{background:var(--warn-soft);border:1px solid var(--gold);color:var(--ink-1);border-radius:10px;padding:9px 14px;font-size:12.5px;margin:8px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .alertbar .abx{margin-left:auto;cursor:pointer;color:var(--muted);padding:0 4px}
+  /* เป้าหมายความมั่งคั่ง (แถบความคืบหน้าในการ์ดหลัก) */
+  .goaltrack{height:8px;background:var(--chip-bg);border-radius:99px;margin-top:10px;overflow:hidden}
+  .goalfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--aqua));border-radius:99px}
+  .goaltxt{font-size:11px;color:var(--muted);margin-top:4px}
+  .goaltxt .editgoal{cursor:pointer;color:var(--accent);margin-left:4px}
+  /* ===== มือถือ ===== */
+  @media(max-width:640px){
+    .wrap{padding:10px 10px 70px}
+    header h1{font-size:16px}
+    .toolbar{margin-left:0;width:100%}
+    .tabs{flex-wrap:nowrap;overflow-x:auto;position:sticky;top:0;z-index:30;background:var(--page);margin:8px -10px 10px;padding:8px 10px;border-bottom:1px solid var(--grid);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{white-space:nowrap;flex:none;padding:8px 14px;font-size:13px}
+    .tiles{grid-template-columns:repeat(2,1fr);gap:8px}
+    .tile{padding:10px 12px}
+    .tile .value{font-size:17px}
+    .tile.hero .value{font-size:25px}
+    table{font-size:11.5px}
+    th,td{padding:6px 6px}
+    .guru-grid{grid-template-columns:1fr}
+    .barpct{grid-template-columns:84px 1fr 78px}
+    button{min-height:34px}
+    .qadd input,.qadd select{min-height:38px}
+  }
 </style>
 </head>
 <body>
@@ -139,6 +172,7 @@
       <button id="btnReset" title="ล้างข้อมูลเริ่มใหม่ (สำหรับคนที่รับแอปไปใช้ต่อ)">↺ เริ่มใหม่</button>
     </div>
   </header>
+  <div id="alertBar" class="alertbar" style="display:none"></div>
 
   <nav class="tabs">
     <button class="tab on" data-tab="wealth">🏆 ความมั่งคั่ง</button>
@@ -188,9 +222,14 @@
     <div class="card section-card">
       <h2>📈 หุ้น/ETF รายตัว <span class="tag">· ต้นทุนเฉลี่ย + กำไร/ขาดทุน อัตโนมัติ</span>
         <button class="mini primary" id="btnAddHold" style="float:right">+ บันทึกซื้อ/ขาย</button></h2>
+      <div id="gainChart" style="margin-bottom:14px"></div>
       <div class="table-scroll"><table id="tblHold"></table></div>
-      <div id="gainChart" style="margin-top:12px"></div>
-      <p class="gnote" style="margin-top:8px">รายการซื้อ-ขายทั้งหมดถูกบันทึก & ซิงค์ขึ้น Google Sheet (แท็บ STATE) — ดูรายละเอียดย้อนหลังได้ในชีต</p>
+      <p class="gnote" style="margin-top:8px">รายการซื้อ-ขายทั้งหมดถูกบันทึก & ซิงค์ขึ้น Google Sheet — เปิดดูเป็นตารางอ่านง่ายได้ที่แท็บ "ซื้อขายหุ้น" ในชีต</p>
+    </div>
+    <div class="card section-card">
+      <h2>💧 ปันผลรับอัตโนมัติ <span class="tag" id="divRecvTag">· พอถึงวัน XD ระบบลงรายรับ "ปันผลหุ้น" ให้เอง (หักภาษีแล้ว)</span></h2>
+      <div class="table-scroll"><table id="divTbl"></table></div>
+      <p class="gnote" style="margin-top:6px">วิธีเปิด: ใส่ <b>วัน XD ถัดไป</b> (ปี-เดือน-วัน เช่น 2026-09-05 — ดูจาก Yahoo/Finviz) ของหุ้นที่ถือ · ปันผล/หุ้น เว้นว่างได้ ระบบประมาณจากอัตราปันผล · พอถึงวันระบบจะบันทึกเข้ารายรับ-รายจ่าย (หมวด "ปันผลหุ้น") แล้วเลื่อนวัน XD ไปรอบถัดไปให้เอง · หัก ณ ที่จ่าย US 15% / ไทย 10% ให้แล้ว — ตัวเลขเป็นประมาณการ เช็กกับยอดจริงที่โบรกได้</p>
     </div>
   </section>
 
@@ -202,10 +241,20 @@
       <p class="gnote" style="margin-top:8px">ข้อมูลจากรายงาน 13F ที่กองทุนต้องเปิดเผยทุกไตรมาส (ยื่นช้ากว่าจริง ~45 วัน) — ใช้ดู "ทิศทาง" ว่ารายใหญ่มองอะไร <b>ไม่ใช่คำแนะนำให้ทำตาม</b> · กด <b>ดูพอร์ตสด</b> ที่แต่ละการ์ดเพื่อเช็กล่าสุด</p>
     </div>
     <div class="card section-card">
-      <h2>⭐ รายชื่อที่จับตา — ข้อมูลพิจารณาซื้อ/ขาย <span class="tag">· ราคา/PE/52wk ซิงค์จาก ☁️ Sheet</span>
-        <button class="mini" id="btnAddWatch" style="float:right">+ เพิ่มหุ้น</button></h2>
+      <h2>⭐ กระดานหุ้น & กองทุน — จัดอันดับตามกลุ่ม <span class="tag">· ราคา/PE/52wk ซิงค์จาก ☁️ Sheet · หุ้นไทยด้วย</span>
+        <span style="float:right;display:inline-flex;gap:6px"><button class="mini" id="btnNotif" title="แจ้งเตือนผ่านเบราว์เซอร์เมื่อราคาแตะเป้าซื้อ">🔔 เปิดแจ้งเตือน</button><button class="mini" id="btnAddWatch">+ เพิ่มเอง</button></span></h2>
+      <div class="filters" id="secChips" style="margin:6px 0 10px"></div>
       <div class="table-scroll"><table id="watchTbl"></table></div>
-      <p class="gnote" style="margin-top:6px">💡 "สัญญาณ" คำนวณจากตำแหน่งราคาในกรอบ 52 สัปดาห์ + P/E เทียบเป้า (เขียว=ช่วงล่างอาจน่าสะสม · แดง=ใกล้จุดสูงระวังไล่ราคา) — <b>ข้อมูลประกอบ ไม่ใช่คำแนะนำซื้อขาย</b> · ช่อง "มุมมอง/แผน" พิมพ์เองได้ เช่น "รอย่อ &lt;150 ค่อยเก็บ" · P/E, High52, Low52 แก้เองได้ถ้ายังไม่ซิงค์</p>
+      <p class="gnote" style="margin-top:6px">💡 <b>อันดับ</b> เรียงตามคะแนนผลประกอบการ (★ 1–5 จากงบ/แนวโน้มธุรกิจ ณ ก.ค. 2569 — มุมมองประกอบ ไม่ใช่คำแนะนำ) · <b>สัญญาณ</b> จากตำแหน่งราคาในกรอบ 52wk (🟢 โซนล่างอาจน่าสะสม · 🔴 ใกล้จุดสูงระวังไล่ราคา) · ราคา "—" จะเติมเองเมื่อเชื่อม ☁️ Sheet · กองทุนไทยกรอก NAV เองในช่องราคา · ช่อง "แผน" พิมพ์เองได้</p>
+    </div>
+    <div class="card section-card">
+      <h2>⚔️ เทียบตัวต่อตัว <span class="tag">· เลือก 2 ตัว จากกลุ่มไหนก็ได้</span></h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px">
+        <select id="cmpA" style="flex:1;min-width:140px"></select>
+        <b style="align-self:center;color:var(--muted)">VS</b>
+        <select id="cmpB" style="flex:1;min-width:140px"></select>
+      </div>
+      <div class="table-scroll"><table id="cmpTbl"></table></div>
     </div>
   </section>
 
@@ -331,7 +380,8 @@
 <script>
 // ==================== STATE ====================
 const DEFAULT_APP = {
-  owner:'KORN', fx:33.62, cashStart:32000,
+  owner:'KORN', fx:33.62, cashStart:32000, goal:2000000,
+  divSched:{}, alerted:{},
   priceSheetUrl:'', journalSheetUrl:'', syncUrl:'', priceUpdated:'',
   history:[
     {date:'2026-03-31',net:1052000},{date:'2026-04-30',net:1071000},
@@ -360,16 +410,60 @@ const DEFAULT_APP = {
     {id:'s11',date:'2026-05-12',action:'buy',sym:'KO',ccy:'USD',shares:11,price:58,fxTrade:33.6,fees:0.3,note:'จาก Foundation'}
   ],
   watch:[
-    {id:'w1',sym:'NVDA',ccy:'USD',plan:'',target:'',price:206.84,pe:31.68,high52:236.54,low52:164.07,yield:0.48},
-    {id:'w2',sym:'MSFT',ccy:'USD',plan:'',target:'',price:381.70,pe:22.73,high52:555.45,low52:349.20,yield:0.95},
-    {id:'w3',sym:'GOOGL',ccy:'USD',plan:'',target:'',price:335.84,pe:33.14,high52:340.49,low52:140.53,yield:0.25},
-    {id:'w4',sym:'AMZN',ccy:'USD',plan:'',target:'',price:232.11,pe:27.76,high52:278.56,low52:196.00,yield:0},
-    {id:'w5',sym:'META',ccy:'USD',plan:'',target:'',price:595.19,pe:21.65,high52:796.25,low52:520.26,yield:0.35},
-    {id:'w6',sym:'AVGO',ccy:'USD',plan:'ชิป AI นอกจาก NVDA',target:'',price:381.92,pe:63.56,high52:495.00,low52:281.61,yield:0.68},
-    {id:'w7',sym:'UBER',ccy:'USD',plan:'Tepper/Gerstner เก็บเพิ่ม',target:'',price:65.94,pe:16.30,high52:101.99,low52:65.56,yield:0},
-    {id:'w8',sym:'PLTR',ccy:'USD',plan:'โตแรงแต่ P/E สูงมาก',target:'',price:122.92,pe:138.18,high52:207.52,low52:106.37,yield:0},
-    {id:'w9',sym:'COST',ccy:'USD',plan:'defensive คุณภาพสูง',target:'',price:935.03,pe:47.03,high52:1096.50,low52:844.06,yield:0.63},
-    {id:'w10',sym:'TSLA',ccy:'USD',plan:'Cathie Wood ถือหนัก · ผันผวนสูง',target:'',price:313.03,pe:289.97,high52:498.83,low52:297.82,yield:0}
+    // ===== US Tech =====
+    {id:'w1',sym:'NVDA',name:'Nvidia',sec:'ustech',ccy:'USD',perf:5,why:'ผู้นำชิป AI งบโตแรงต่อเนื่อง — พี่ถืออยู่',plan:'',target:'',price:206.84,pe:31.68,high52:236.54,low52:164.07,yield:0.48},
+    {id:'w2',sym:'MSFT',name:'Microsoft',sec:'ustech',ccy:'USD',perf:4,why:'คลาวด์โตดี แต่ตลาดกังวล AI capex + TCI ขาย 84% ราคาย่อลึก',plan:'',target:'',price:381.70,pe:22.73,high52:555.45,low52:349.20,yield:0.95},
+    {id:'w3',sym:'GOOGL',name:'Alphabet',sec:'ustech',ccy:'USD',perf:5,why:'โฆษณา+AI แข็ง Buffett/TCI ซื้อ — แต่ราคาใกล้จุดสูง',plan:'',target:'',price:335.84,pe:33.14,high52:340.49,low52:140.53,yield:0.25},
+    {id:'w4',sym:'META',name:'Meta',sec:'ustech',ccy:'USD',perf:4,why:'โฆษณาแข็งแรง แต่ลงทุน AI หนัก ราคาย่อ — พี่ถืออยู่',plan:'',target:'',price:595.19,pe:21.65,high52:796.25,low52:520.26,yield:0.35},
+    {id:'w5',sym:'AMZN',name:'Amazon',sec:'ustech',ccy:'USD',perf:4,why:'AWS+ค้าปลีกแข็ง Tepper/Ackman เพิ่ม (Buffett ออก) — พี่ถืออยู่',plan:'',target:'',price:232.11,pe:27.76,high52:278.56,low52:196.00,yield:0},
+    {id:'w6',sym:'AVGO',name:'Broadcom',sec:'ustech',ccy:'USD',perf:4,why:'ชิป AI สั่งทำโตแรง Druckenmiller/ARK ซื้อ — P/E สูง',plan:'',target:'',price:381.92,pe:63.56,high52:495.00,low52:281.61,yield:0.68},
+    {id:'w7',sym:'AMD',name:'AMD',sec:'ustech',ccy:'USD',perf:3,why:'วิ่งแรงตามกระแส AI ต้องพิสูจน์ส่วนแบ่งจาก NVDA',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w8',sym:'PLTR',name:'Palantir',sec:'ustech',ccy:'USD',perf:3,why:'โตแรงมากแต่ P/E ~138 แพงสุดในกลุ่ม เสี่ยงถ้าโตพลาด',plan:'',target:'',price:122.92,pe:138.18,high52:207.52,low52:106.37,yield:0},
+    {id:'w9',sym:'TSLA',name:'Tesla',sec:'ustech',ccy:'USD',perf:2,why:'ยอดขายรถชะลอ P/E สูงมาก — ARK ถือหนัก ผันผวนจัด',plan:'',target:'',price:313.03,pe:289.97,high52:498.83,low52:297.82,yield:0},
+    {id:'w10',sym:'UBER',name:'Uber',sec:'ustech',ccy:'USD',perf:4,why:'กำไรโตต่อเนื่อง Tepper×3 Gerstner+43% — ราคาโซนล่าง',plan:'',target:'',price:65.94,pe:16.30,high52:101.99,low52:65.56,yield:0},
+    // ===== US Health =====
+    {id:'w11',sym:'LLY',name:'Eli Lilly',sec:'ushealth',ccy:'USD',perf:5,why:'ยาลดน้ำหนัก GLP-1 ขายถล่มทลาย ผู้นำกลุ่มสุขภาพ',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w12',sym:'UNH',name:'UnitedHealth',sec:'ushealth',ccy:'USD',perf:2,why:'ปีหนัก ต้นทุนรักษาพุ่ง+ถูกสอบสวน — แต่ Burry เก็บสวน',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w13',sym:'JNJ',name:'Johnson & Johnson',sec:'ushealth',ccy:'USD',perf:3,why:'มั่นคง ปันผลโตต่อเนื่อง 60+ ปี แต่โตช้า (พี่เคยถือ ขายแล้ว)',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w14',sym:'ABBV',name:'AbbVie',sec:'ushealth',ccy:'USD',perf:4,why:'ยา immunology pipeline แข็ง ปันผลดี',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w15',sym:'NVO',name:'Novo Nordisk',sec:'ushealth',ccy:'USD',perf:3,why:'GLP-1 เหมือน LLY แต่โดนแย่งส่วนแบ่ง ราคาย่อลึก — อาจถูก',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    // ===== US Consumer =====
+    {id:'w16',sym:'COST',name:'Costco',sec:'uscons',ccy:'USD',perf:5,why:'สมาชิกโตสม่ำเสมอทุกสภาพเศรษฐกิจ — แต่ P/E 47 แพง',plan:'',target:'',price:935.03,pe:47.03,high52:1096.50,low52:844.06,yield:0.63},
+    {id:'w17',sym:'WMT',name:'Walmart',sec:'uscons',ccy:'USD',perf:4,why:'ค้าปลีกแข็งสุดช่วงคนประหยัด ยอดโตต่อเนื่อง',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w18',sym:'KO',name:'Coca-Cola',sec:'uscons',ccy:'USD',perf:4,why:'แบรนด์แข็ง ปันผลโต 60+ ปี — พี่ถืออยู่ (+22%)',plan:'',target:'',price:71,pe:0,high52:0,low52:0,yield:2.58},
+    {id:'w19',sym:'PG',name:'P&G',sec:'uscons',ccy:'USD',perf:3,why:'ยอดโตช้า ราคาย่อ — พี่ถืออยู่ ปันผลสูงสุดที่ถือ (2.87%)',plan:'',target:'',price:159,pe:0,high52:0,low52:0,yield:2.87},
+    {id:'w20',sym:'MCD',name:'McDonald\'s',sec:'uscons',ccy:'USD',perf:3,why:'ผู้บริโภคชะลอกินนอกบ้าน ราคาใกล้โซนต่ำ',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w21',sym:'NKE',name:'Nike',sec:'uscons',ccy:'USD',perf:2,why:'ยอดขายหด โดนแบรนด์จีนแข่ง ใกล้จุดต่ำรอบปี',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    // ===== US Finance =====
+    {id:'w22',sym:'V',name:'Visa',sec:'usfin',ccy:'USD',perf:4,why:'เก็บค่าธรรมเนียมโตตามการใช้จ่ายโลก TCI ถือ 20% พอร์ต — พี่ถืออยู่',plan:'',target:'',price:293,pe:0,high52:0,low52:0,yield:0.7},
+    {id:'w23',sym:'MA',name:'Mastercard',sec:'usfin',ccy:'USD',perf:4,why:'โมเดลเดียวกับ Visa กำไรโตสองหลักสม่ำเสมอ',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w24',sym:'JPM',name:'JPMorgan',sec:'usfin',ccy:'USD',perf:4,why:'แบงก์ใหญ่สุดสหรัฐ กำไรแข็งทุกวัฏจักร',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    // ===== US Energy =====
+    {id:'w25',sym:'XOM',name:'Exxon Mobil',sec:'usenergy',ccy:'USD',perf:3,why:'น้ำมันร่วงกดทั้งกลุ่ม ปันผลยังมั่นคง',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w26',sym:'CVX',name:'Chevron',sec:'usenergy',ccy:'USD',perf:3,why:'เหมือน XOM + Buffett ลดถือ 35%',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w27',sym:'WMB',name:'Williams',sec:'usenergy',ccy:'USD',perf:4,why:'ท่อก๊าซ — ดีมานด์ไฟฟ้า AI data center หนุน สวนกระแสกลุ่ม',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    // ===== US Dividend =====
+    {id:'w28',sym:'SCHD',name:'Schwab Dividend ETF',sec:'usdiv',ccy:'USD',perf:4,why:'ETF หุ้นปันผลคุณภาพ ~100 ตัว — แกนพอร์ตปันผลพี่',plan:'',target:'',price:29.2,pe:0,high52:0,low52:0,yield:3.2},
+    {id:'w29',sym:'JEPI',name:'JPMorgan Equity Premium',sec:'usdiv',ccy:'USD',perf:3,why:'ปันผลสูง ~8% จาก covered call แลกกับ upside จำกัด — พี่ถืออยู่',plan:'',target:'',price:57.8,pe:0,high52:0,low52:0,yield:8.1},
+    {id:'w30',sym:'O',name:'Realty Income',sec:'usdiv',ccy:'USD',perf:3,why:'REIT ปันผลรายเดือน มั่นคงแต่ดอกเบี้ยกดราคา — พี่ถืออยู่',plan:'',target:'',price:58.9,pe:0,high52:0,low52:0,yield:4.9},
+    {id:'w31',sym:'VZ',name:'Verizon',sec:'usdiv',ccy:'USD',perf:3,why:'ถูก+ปันผลสูง แต่เสี่ยงโดน Starlink แข่งระยะยาว',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w32',sym:'D',name:'Dominion Energy',sec:'usdiv',ccy:'USD',perf:3,why:'ไฟฟ้า data center หนุน — แต่ราคาวิ่งไปใกล้จุดสูงแล้ว',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    // ===== หุ้นไทย =====
+    {id:'w33',sym:'DELTA',name:'เดลต้า อีเลคโทรนิคส์',sec:'thstock',ccy:'THB',perf:4,why:'อิเล็กทรอนิกส์/AI — ครึ่งปีแรก 69 พุ่งแรงนำ SET50 · วิ่งแรงแล้วระวังแพง',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w34',sym:'AOT',name:'ท่าอากาศยานไทย',sec:'thstock',ccy:'THB',perf:3,why:'ท่องเที่ยวฟื้นแต่ช้ากว่าคาด ราคายังต่ำกว่าก่อนโควิดมาก',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w35',sym:'CPALL',name:'ซีพี ออลล์ (7-11)',sec:'thstock',ccy:'THB',perf:3,why:'กำไรสม่ำเสมอตามการบริโภค ไม่หวือหวา',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w36',sym:'PTT',name:'ปตท.',sec:'thstock',ccy:'THB',perf:3,why:'พลังงานผันผวนตามน้ำมัน จุดเด่นคือปันผล',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w37',sym:'ADVANC',name:'แอดวานซ์ (AIS)',sec:'thstock',ccy:'THB',perf:4,why:'มือถือเบอร์ 1 กำไรโต แข่งขันลดลงหลังควบรวม',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w38',sym:'KBANK',name:'กสิกรไทย',sec:'thstock',ccy:'THB',perf:3,why:'แบงก์ถูก P/BV ต่ำ ปันผลดี — เศรษฐกิจไทยโตช้ากดอยู่',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w39',sym:'GULF',name:'กัลฟ์ เอ็นเนอร์จี',sec:'thstock',ccy:'THB',perf:3,why:'โรงไฟฟ้า+ดาต้าเซ็นเตอร์โต แต่หนี้สูง',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w40',sym:'BDMS',name:'กรุงเทพดุสิตเวชการ',sec:'thstock',ccy:'THB',perf:3,why:'รพ.เอกชนใหญ่สุด มั่นคง โตตามสังคมสูงวัย',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    // ===== กองทุนไทย (NAV กรอกเอง — GOOGLEFINANCE ไม่มีข้อมูลกองทุนไทย) =====
+    {id:'w41',sym:'SCBS&P500',name:'SCB หุ้นยูเอส (ตาม S&P500)',sec:'thfund',ccy:'THB',kind:'fund',perf:4,why:'ตามดัชนี S&P500 ค่าธรรมเนียมต่ำ เหมาะ DCA ระยะยาว',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w42',sym:'B-INNOTECH',name:'บัวหลวงโกลบอลอินโนเวชั่น',sec:'thfund',ccy:'THB',kind:'fund',perf:4,why:'เทคโลก ผลงานระยะยาวเด่นในกลุ่มกองไทย',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w43',sym:'K-USA',name:'K หุ้นยูเอส',sec:'thfund',ccy:'THB',kind:'fund',perf:3,why:'หุ้นเติบโตสหรัฐ ผันผวนตามกลุ่มเทค',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w44',sym:'KFGBRAND',name:'กรุงศรีโกลบอลแบรนด์',sec:'thfund',ccy:'THB',kind:'fund',perf:3,why:'แบรนด์ระดับโลก defensive ผันผวนต่ำกว่ากองเทค',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w45',sym:'K-CHANGE',name:'K หุ้นเปลี่ยนโลก (ESG)',sec:'thfund',ccy:'THB',kind:'fund',perf:2,why:'ธีมเปลี่ยนโลก/ESG ผันผวนสูง ผลงานหลังๆ แผ่ว',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0},
+    {id:'w46',sym:'ONE-UGG',name:'ONE Ultimate Global Growth',sec:'thfund',ccy:'THB',kind:'fund',perf:3,why:'หุ้นเติบโตทั่วโลก ขึ้นแรงลงแรง เหมาะถือยาว',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0}
   ],
   trades:[
     {id:1,date:'2026-04-06',closeDate:'2026-04-24',symbol:'META',type:'stock',side:'long',qty:0.25,entry:612,exit:641.5,fees:.3,note:'เข้าก่อนงบ'},
@@ -489,7 +583,9 @@ function renderWealth(){
     {k:'เงินสด',ic:'💵',v:w.cash,g:null,c:css('--muted')},
     {k:'สินทรัพย์',ic:'🏠',v:propEquity(),g:null,c:css('--win')}
   ];
-  let html=`<div class="tile hero"><div class="label">🏆 ความมั่งคั่งสุทธิ</div><div class="value">${fmt(w.net)} บ.</div><div class="note">ทุกสินทรัพย์ + เงินสด + ส่วนของสินทรัพย์ − หนี้</div></div>
+  const goal=APP.goal||0,gp=goal?Math.min(100,w.net/goal*100):0;
+  let html=`<div class="tile hero"><div class="label">🏆 ความมั่งคั่งสุทธิ</div><div class="value">${fmt(w.net)} บ.</div><div class="note">ทุกสินทรัพย์ + เงินสด + ส่วนของสินทรัพย์ − หนี้</div>
+    ${goal?`<div class="goaltrack"><div class="goalfill" style="width:${gp}%"></div></div><div class="goaltxt">🎯 เป้าหมาย ${fmt(goal)} บ. · ถึงแล้ว <b style="color:var(--ink-1)">${gp.toFixed(1)}%</b> · ขาดอีก ${fmt(Math.max(0,goal-w.net))} บ.<span class="editgoal" id="btnGoal">✎ แก้เป้า</span></div>`:`<div class="goaltxt"><span class="editgoal" id="btnGoal">🎯 ตั้งเป้าหมายความมั่งคั่ง</span></div>`}</div>
     <div class="subgrid two">
       <div class="tile t2"><div class="label">📈 กำไรรวมจากเงินต้น</div><div class="value" style="color:${w.gain>=0?'var(--good-text)':'var(--bad-text)'}">${w.gain>=0?'+':'−'}${fmt(Math.abs(w.gain))} บ.</div><div class="note">มูลค่าปัจจุบัน − เงินที่ใส่เอง</div></div>
       <div class="tile t2"><div class="label">🗓️ เปลี่ยนแปลงเดือนล่าสุด</div><div class="value" style="color:${mGain>=0?'var(--good-text)':'var(--bad-text)'}">${mGain>=0?'▲ +':'▼ −'}${fmt(Math.abs(mGain))}</div><div class="note">เทียบจุดบันทึกก่อนหน้า</div></div>
@@ -658,6 +754,47 @@ function renderPort(){
   const rows=[...Object.entries(groups).map(([n,v])=>({n,v})),{n:'กบข.',v:APP.gbx.value},{n:'สหกรณ์',v:APP.coop.value},{n:'ทอง',v:APP.gold.value},{n:'ดอกเบี้ย (รับปีนี้)',v:interest}].filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
   const mx=Math.max(...rows.map(r=>r.v),1);const gTot=sum(rows.map(r=>r.v))||1;
   $('grpChart').innerHTML='<div class="chart-cap">🍩 มูลค่าตามชนิด/กลุ่ม · บาท</div>'+rows.map(r=>`<div class="barpct" style="grid-template-columns:160px 1fr 118px"><span class="nm">${r.n}</span><span class="track"><span class="fill" style="width:${r.v/mx*100}%;background:${gc[r.n]||css('--accent')}"></span></span><span class="vl">${fmt(r.v)} <span style="color:var(--muted)">(${(r.v/gTot*100).toFixed(0)}%)</span></span></div>`).join('');
+  // 💧 ตารางปันผลอัตโนมัติ
+  APP.divSched=APP.divSched||{};
+  const divRecvY=sum(APP.tx.filter(t=>t.type==='income'&&t.cat==='ปันผลหุ้น'&&t.date.startsWith(yr)).map(t=>t.amount));
+  if($('divRecvTag'))$('divRecvTag').innerHTML=`· รับแล้วปีนี้ <b style="color:var(--good-text)">${fmt(divRecvY)} บ.</b> · พอถึงวัน XD ระบบลงรายรับให้เอง (หักภาษีแล้ว)`;
+  let dh=`<tr><th>หุ้น</th><th class="r">ถืออยู่</th><th class="r">ปันผล/หุ้น (${'$'}/฿)</th><th>ความถี่</th><th>วัน XD ถัดไป</th><th class="r">ประมาณรับ/รอบ (บ.)</th><th>สถานะ</th></tr>`;
+  open.filter(h=>h.div>0||APP.divSched[h.sym]).forEach(h=>{
+    const s=APP.divSched[h.sym]||{};const freq=s.freq||'q';
+    const est=h.price&&h.div?h.price*h.div/100/(freq==='m'?12:4):0;
+    const dps=s.dps>0?s.dps:est;
+    const fx=h.ccy==='USD'?APP.fx:1, wh=h.ccy==='USD'?0.85:0.90;
+    const amt=Math.round(h.shares*dps*fx*wh);
+    dh+=`<tr><td><b>${h.sym}</b></td><td class="r">${(+h.shares.toFixed(4))}</td>
+      <td class="r" contenteditable data-dsym="${h.sym}" data-f="dps">${s.dps>0?s.dps:(est?est.toFixed(3)+' (ประมาณ)':'')}</td>
+      <td><select data-dfreq="${h.sym}" style="font-size:11.5px;padding:2px 6px"><option value="q" ${freq==='q'?'selected':''}>รายไตรมาส</option><option value="m" ${freq==='m'?'selected':''}>รายเดือน</option></select></td>
+      <td contenteditable data-dsym="${h.sym}" data-f="next" style="min-width:92px;color:${s.next?'var(--ink-1)':'var(--muted)'}">${s.next||'ใส่ ปี-ดด-วว'}</td>
+      <td class="r">${amt?'~'+fmt(amt):'—'}</td>
+      <td style="font-size:11px;color:${s.next?'var(--good-text)':'var(--muted)'}">${s.next&&/^\d{4}-\d{2}-\d{2}$/.test(s.next)?'🟢 เปิดอยู่':'ปิด — ใส่วัน XD เพื่อเริ่ม'}</td></tr>`;});
+  if(!open.filter(h=>h.div>0||APP.divSched[h.sym]).length)dh+=`<tr><td colspan="7" style="text-align:center;color:var(--muted)">ยังไม่มีหุ้นที่มีปันผล</td></tr>`;
+  $('divTbl').innerHTML=dh;
+}
+// ===== 💧 บันทึกปันผลอัตโนมัติตามวัน XD =====
+function processDividends(){
+  APP.divSched=APP.divSched||{};let changed=false;const today=todayISO();
+  computeHoldings().filter(h=>h.shares>0).forEach(h=>{
+    const s=APP.divSched[h.sym];if(!s||!s.next||!/^\d{4}-\d{2}-\d{2}$/.test(s.next))return;
+    let n=0;
+    while(s.next<=today&&n<24){
+      const freq=s.freq||'q';
+      const dps=s.dps>0?s.dps:(h.price&&h.div?h.price*h.div/100/(freq==='m'?12:4):0);
+      if(dps>0){
+        const fx=h.ccy==='USD'?APP.fx:1, wh=h.ccy==='USD'?0.85:0.90;
+        const amt=Math.round(h.shares*dps*fx*wh);
+        if(amt>0){APP.tx.push({id:'t'+(nextRow++),date:s.next,type:'income',cat:'ปันผลหุ้น',desc:`${h.sym} ปันผลอัตโนมัติ ${(+h.shares.toFixed(4))} หุ้น × ${dps.toFixed(3)} (หลังหักภาษี)`,amount:amt,method:'โอน/พร้อมเพย์'});changed=true;}
+      }
+      const d=new Date(s.next+'T12:00:00');d.setMonth(d.getMonth()+(freq==='m'?1:3));
+      s.next=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      n++;
+    }
+  });
+  if(changed){try{saveState();}catch(e){}try{if(typeof scheduleCloud==='function')scheduleCloud();}catch(e){}}
+  return changed;
 }
 $('btnAddHold').onclick=()=>{$('frmHold').reset();$('frmHold').date.value=todayISO();$('frmHold').fxTrade.value=APP.fx;$('dlgHold').showModal();toggleFx();};
 function toggleFx(){const usd=$('frmHold').ccy.value==='USD';$('fxRow').style.display=usd?'':'none';}
@@ -715,6 +852,10 @@ const zoneOf=(w)=>{if(w.high52&&w.low52&&w.price){const r=pct(w.price-w.low52,w.
   if(r>=85)return{c:'hi',t:`🔴 ใกล้จุดสูง 52wk (${r.toFixed(0)}%)`};
   return{c:'mid',t:`⚪ กลางกรอบ (${r.toFixed(0)}%)`};}
   return{c:'mid',t:'— ใส่ High52/Low52 ก่อน'};};
+const SECS=[['all','🌐 ทั้งหมด'],['ustech','💻 US Tech'],['ushealth','🩺 US Health'],['uscons','🛒 US Consumer'],['usfin','🏦 US Finance'],['usenergy','⛽ US Energy'],['usdiv','💧 US ปันผล'],['thstock','🇹🇭 หุ้นไทย'],['thfund','🏛️ กองทุนไทย']];
+const SECNM=Object.fromEntries(SECS);
+let secFilter='all',cmpASym='',cmpBSym='';
+const stars=n=>'★'.repeat(n||0)+'☆'.repeat(5-(n||0));
 function renderJournal(){
   // 🌍 นักลงทุนระดับโลก
   $('guruGrid').innerHTML=GURUS.map(g=>`<div class="guru-card">
@@ -725,24 +866,75 @@ function renderJournal(){
     <div class="guru-mv"><b class="neg">🔴 ขาย/ออก</b><ul>${g.sell.map(x=>`<li>${x}</li>`).join('')}</ul></div>
     <a class="guru-link" href="${g.url}" target="_blank" rel="noopener">ดูพอร์ตสด (Dataroma) ↗</a>
   </div>`).join('');
-  // ⭐ รายชื่อที่จับตา — ข้อมูล + สัญญาณ + แผน
-  let wh=`<tr><th>หุ้น</th><th class="r">ราคา</th><th class="r">P/E</th><th class="r">High52</th><th class="r">Low52</th><th>สัญญาณ (ข้อมูลประกอบ)</th><th class="r">เป้า</th><th>มุมมอง/แผนของฉัน</th><th>ลิงก์</th><th></th></tr>`;
-  APP.watch.forEach(w=>{const s=encodeURIComponent(w.sym);const z=zoneOf(w);const tgt=parseFloat(w.target);const vsT=(!isNaN(tgt)&&w.price)?(w.price<=tgt?' · ต่ำกว่าเป้า ✓':' · เหนือเป้า'):'';
+  // ⭐ กระดานจัดอันดับตามกลุ่ม
+  $('secChips').innerHTML=SECS.map(([k,l])=>`<span class="chip ${secFilter===k?'on':''}" data-sec="${k}">${l}</span>`).join('');
+  const list=APP.watch.filter(w=>secFilter==='all'||w.sec===secFilter)
+    .slice().sort((a,b)=>(b.perf||0)-(a.perf||0)||String(a.sym).localeCompare(String(b.sym)));
+  const medal=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+  let wh=`<tr><th>#</th><th>ตัว</th><th class="r">ราคา${secFilter==='thfund'?'/NAV':''}</th><th class="r">🔔 เป้าซื้อ</th><th class="r">P/E</th><th>สัญญาณ 52wk</th><th>ผลประกอบการ · เหตุผล</th><th>แผนของฉัน</th><th></th></tr>`;
+  list.forEach((w,i)=>{const s=encodeURIComponent(w.sym);const z=zoneOf(w);const fund=w.kind==='fund';
+    const tgt=parseFloat(w.target),hit=tgt>0&&w.price>0&&w.price<=tgt;
     wh+=`<tr>
-      <td contenteditable data-watch="${w.id}" data-f="sym"><b>${w.sym}</b></td>
-      <td class="r">${w.price?w.price:'—'}</td>
-      <td class="r" contenteditable data-watch="${w.id}" data-f="pe">${w.pe||''}</td>
-      <td class="r" contenteditable data-watch="${w.id}" data-f="high52">${w.high52||''}</td>
-      <td class="r" contenteditable data-watch="${w.id}" data-f="low52">${w.low52||''}</td>
-      <td><span class="zone ${z.c}">${z.t}</span>${w.pe?` <span style="color:var(--muted);font-size:11px">P/E ${(+w.pe).toFixed(0)}${w.pe>=40?' สูง':''}</span>`:''}${vsT}</td>
-      <td class="r" contenteditable data-watch="${w.id}" data-f="target">${w.target||''}</td>
-      <td contenteditable data-watch="${w.id}" data-f="plan" style="min-width:150px;color:var(--ink-1)">${w.plan||''}</td>
-      <td><a class="wlink" target="_blank" href="https://finance.yahoo.com/quote/${s}">Y</a><a class="wlink" target="_blank" href="https://finviz.com/quote.ashx?t=${s}">F</a></td>
-      <td><button class="del" data-delwatch="${w.id}">✕</button></td></tr>`;});
-  if(!APP.watch.length)wh+=`<tr><td colspan="10" style="text-align:center;color:var(--muted)">ยังไม่มีหุ้น — กด + เพิ่มหุ้น</td></tr>`;
+      <td style="font-size:13px">${medal(i)}</td>
+      <td><b>${w.sym}</b>${hit?' <span title="แตะราคาเป้าแล้ว">🔔</span>':''}${w.name?`<div style="font-size:10.5px;color:var(--muted)">${w.name}</div>`:''}${secFilter==='all'?`<span class="badge" style="font-size:9px">${(SECNM[w.sec]||'').replace(/^\S+\s/,'')}</span>`:''}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="price">${w.price||'—'}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="target" style="color:${hit?'var(--good-text)':'var(--ink-1)'}">${w.target||''}</td>
+      <td class="r" contenteditable data-watch="${w.id}" data-f="pe">${fund?'—':(w.pe||'—')}</td>
+      <td>${fund?'<span style="color:var(--muted);font-size:11px">กองทุน — ดู NAV</span>':`<span class="zone ${z.c}">${z.t}</span>`}</td>
+      <td style="max-width:250px"><span style="color:var(--gold);letter-spacing:1px">${stars(w.perf)}</span><div style="font-size:11px;color:var(--ink-2);line-height:1.45">${w.why||''}</div></td>
+      <td contenteditable data-watch="${w.id}" data-f="plan" style="min-width:120px;color:var(--ink-1)">${w.plan||''}</td>
+      <td>${fund?'':`<a class="wlink" target="_blank" href="https://finance.yahoo.com/quote/${w.ccy==='THB'?s+'.BK':s}">Y</a>`}<button class="del" data-delwatch="${w.id}">✕</button></td></tr>`;});
+  if(!list.length)wh+=`<tr><td colspan="9" style="text-align:center;color:var(--muted)">—</td></tr>`;
   $('watchTbl').innerHTML=wh;
+  renderCompare();
+  checkAlerts();
 }
-$('btnAddWatch').onclick=()=>{APP.watch.push({id:'w'+(nextRow++),sym:'TICKER',ccy:'USD',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0});renderJournal();};
+// ===== 🔔 แจ้งเตือนเมื่อราคาแตะเป้า =====
+let alertsHidden=false;
+function checkAlerts(){
+  const bar=$('alertBar');if(!bar)return;
+  APP.alerted=APP.alerted||{};
+  const hits=(APP.watch||[]).filter(w=>{const t=parseFloat(w.target);return t>0&&w.price>0&&w.price<=t;});
+  hits.forEach(w=>{const t=parseFloat(w.target);
+    if(APP.alerted[w.sym]!==t){APP.alerted[w.sym]=t;alertsHidden=false;
+      try{if(typeof Notification!=='undefined'&&Notification.permission==='granted')new Notification('🔔 '+w.sym+' แตะราคาเป้า',{body:`ราคา ${w.price} ≤ เป้า ${t}`});}catch(e){}
+    }});
+  // ราคาเด้งกลับเหนือเป้า → ล้างสถานะ เพื่อแจ้งใหม่ได้ถ้าลงมาอีก
+  Object.keys(APP.alerted).forEach(sy=>{const w=(APP.watch||[]).find(x=>x.sym===sy);const t=w?parseFloat(w.target):NaN;if(!w||!(t>0)||!(w.price>0)||w.price>t)delete APP.alerted[sy];});
+  if(hits.length&&!alertsHidden){
+    bar.style.display='';
+    bar.innerHTML=`🔔 <b>แตะราคาเป้า:</b> ${hits.map(w=>`<b>${w.sym}</b> ${w.price} (เป้า ${w.target})`).join(' · ')} <span style="color:var(--muted);font-size:11px">— ข้อมูลประกอบ ไม่ใช่สัญญาณซื้อ</span><span class="abx" id="alertClose">✕</span>`;
+  } else bar.style.display='none';
+}
+function renderCompare(){
+  const opts=APP.watch.slice().sort((a,b)=>String(a.sec).localeCompare(String(b.sec))||String(a.sym).localeCompare(String(b.sym)));
+  const optHtml=sel=>'<option value="">— เลือก —</option>'+opts.map(w=>`<option value="${w.sym}" ${w.sym===sel?'selected':''}>${w.sym} · ${w.name||''}</option>`).join('');
+  $('cmpA').innerHTML=optHtml(cmpASym);$('cmpB').innerHTML=optHtml(cmpBSym);
+  const A=APP.watch.find(w=>w.sym===cmpASym),B=APP.watch.find(w=>w.sym===cmpBSym);
+  if(!A||!B){$('cmpTbl').innerHTML=`<tr><td style="color:var(--muted);text-align:center;padding:14px">เลือก 2 ตัวข้างบนเพื่อเทียบกัน — เทียบข้ามกลุ่มก็ได้ (เช่น NVDA vs DELTA)</td></tr>`;return;}
+  const pos=w=>{if(w.high52&&w.low52&&w.price)return pct(w.price-w.low52,w.high52-w.low52);return null;};
+  const rows=[
+    ['กลุ่ม',SECNM[A.sec]||'—',SECNM[B.sec]||'—',null],
+    ['ราคา/NAV',A.price||'—',B.price||'—',null],
+    ['P/E',A.kind==='fund'?'—':(A.pe||'—'),B.kind==='fund'?'—':(B.pe||'—'),'low'],
+    ['ปันผล %',A.yield||'—',B.yield||'—','high'],
+    ['ตำแหน่งในกรอบ 52wk',pos(A)==null?'—':pos(A).toFixed(0)+'%',pos(B)==null?'—':pos(B).toFixed(0)+'%','low'],
+    ['ผลประกอบการ (★)',stars(A.perf),stars(B.perf),'star'],
+    ['เหตุผล',A.why||'—',B.why||'—',null]
+  ];
+  const better=(r)=>{ // ชี้ฝั่งที่ "ตัวเลขดูดีกว่า" เฉพาะแถวที่เทียบได้
+    const[label,a,b,mode]=r;if(!mode)return 0;
+    if(mode==='star')return (A.perf||0)>(B.perf||0)?1:(B.perf||0)>(A.perf||0)?2:0;
+    const na=parseFloat(a),nb=parseFloat(b);if(isNaN(na)||isNaN(nb))return 0;
+    if(mode==='low')return na<nb?1:nb<na?2:0;return na>nb?1:nb>na?2:0;};
+  $('cmpTbl').innerHTML=`<tr><th></th><th style="color:var(--accent)">${A.sym}</th><th style="color:var(--gold)">${B.sym}</th></tr>`+
+    rows.map(r=>{const w=better(r);return`<tr><td style="color:var(--muted);font-size:11.5px">${r[0]}</td><td ${w===1?'style="color:var(--good-text);font-weight:600"':''}>${r[1]}${w===1?' ✓':''}</td><td ${w===2?'style="color:var(--good-text);font-weight:600"':''}>${r[2]}${w===2?' ✓':''}</td></tr>`;}).join('')+
+    `<tr><td colspan="3" style="color:var(--muted);font-size:10.5px;padding-top:8px">✓ = ตัวเลขดูดีกว่าในมิตินั้น (P/E ต่ำกว่า / ปันผลสูงกว่า / ราคาอยู่โซนล่างกว่า) — ประกอบการพิจารณา ไม่ใช่คำตัดสินว่าตัวไหนดีกว่า</td></tr>`;
+}
+$('secChips').addEventListener('click',e=>{const c=e.target.closest('[data-sec]');if(c){secFilter=c.dataset.sec;renderJournal();}});
+$('cmpA').addEventListener('change',e=>{cmpASym=e.target.value;renderCompare();});
+$('cmpB').addEventListener('change',e=>{cmpBSym=e.target.value;renderCompare();});
+$('btnAddWatch').onclick=()=>{const s=prompt('สัญลักษณ์หุ้น (เช่น ORCL หรือ PTT):');if(!s||!s.trim())return;APP.watch.push({id:'w'+(nextRow++),sym:s.trim().toUpperCase(),name:'',sec:secFilter==='all'?'ustech':secFilter,ccy:/^[A-Z]{1,5}$/.test(s.trim().toUpperCase())?'USD':'THB',perf:3,why:'',plan:'',target:'',price:0,pe:0,high52:0,low52:0,yield:0});renderJournal();};
 
 // ==================== รายรับ-รายจ่าย (รอบเงินเดือน) ====================
 let periodIdx=null; // null = รอบล่าสุด
@@ -777,7 +969,8 @@ function renderBudget(){
     <div class="tile"><div class="label">รายจ่าย</div><div class="value" style="color:var(--bad-text)">${fmt(p.expense)}</div><div class="note">${p.rows.filter(t=>t.type==='expense').length} รายการ</div></div>
     <div class="tile"><div class="label">ออม/ลงทุน</div><div class="value" style="color:var(--accent)">${fmt(p.saving)}</div><div class="note">อัตราออม ${pct(p.saving,p.income).toFixed(0)}%</div></div>
     <div class="tile"><div class="label">หนี้ที่ต้องชำระ</div><div class="value" style="color:var(--gold)">${fmt(p.debtDue)}</div><div class="note">บัตร/ผ่อน ครบกำหนดรอบนี้</div></div>
-    <div class="tile"><div class="label">คงเหลือ (เงินสด)</div><div class="value" style="color:${p.net>=0?'var(--good-text)':'var(--bad-text)'}">${fmt(p.net)}</div><div class="note">รับ−จ่ายสด−ออม−หนี้</div></div>`;
+    <div class="tile"><div class="label">คงเหลือ (เงินสด)</div><div class="value" style="color:${p.net>=0?'var(--good-text)':'var(--bad-text)'}">${fmt(p.net)}</div><div class="note">รับ−จ่ายสด−ออม−หนี้</div></div>
+    ${(()=>{if(periodIdx!==P.length-1)return'';const st=new Date(p.start);st.setMonth(st.getMonth()+1);const dl=Math.max(1,Math.ceil((st-new Date())/864e5));const pd=p.net>0?p.net/dl:0;return`<div class="tile"><div class="label">💡 ใช้ได้อีกวันละ</div><div class="value" style="color:var(--aqua)">${fmt(pd)}</div><div class="note">เหลือ ~${dl} วันถึงเงินเดือนรอบใหม่</div></div>`;})()}`;
   // แผนที่สีของหมวด (ใช้สีเดียวกันทั้งโดนัทเดือนนี้ + กราฟย้อนหลัง)
   const CATCOL=catColorMap(P);
   // 🍩 โดนัท: เดือนนี้จ่ายไปกับอะไร (ตามหมวด)
@@ -870,11 +1063,13 @@ document.addEventListener('input',e=>{const td=e.target.closest&&e.target.closes
   if(d.ast){const o=APP[d.ast];if(d.f==='note')o.note=td.textContent.trim();else o[d.f]=num(td.textContent);}
   else if(d.sym){const s=d.sym;if(d.f==='group')APP.symGroup[s]=td.textContent.trim();else if(d.f==='price')APP.priceNow[s]=num(td.textContent);else if(d.f==='div')APP.divYield[s]=num(td.textContent);}
   else if(d.watch){const w=APP.watch.find(x=>x.id===d.watch);if(!w)return;if(['pe','high52','low52','yield','price'].includes(d.f))w[d.f]=num(td.textContent);else w[d.f]=td.textContent.trim();}
+  else if(d.dsym){const s=APP.divSched[d.dsym]=APP.divSched[d.dsym]||{freq:'q'};if(d.f==='dps')s.dps=num(td.textContent);else if(d.f==='next')s.next=td.textContent.trim();}
   else if(d.prop){const p=APP.props.find(x=>x.id===d.prop);if(!p)return;if(d.f==='name'||d.f==='note')p[d.f]=td.textContent.trim();else p[d.f]=num(td.textContent);}
 });
 document.addEventListener('blur',e=>{const td=e.target.closest&&e.target.closest('td[contenteditable]');if(!td)return;const d=td.dataset;
-  if(d.ast||d.sym){renderPort();renderWealth();}else if(d.prop){renderProp();renderWealth();}else if(d.watch)renderJournal();
+  if(d.ast||d.sym){renderPort();renderWealth();}else if(d.prop){renderProp();renderWealth();}else if(d.watch)renderJournal();else if(d.dsym){processDividends();renderPort();}
 },true);
+document.addEventListener('change',e=>{const sel=e.target.closest&&e.target.closest('select[data-dfreq]');if(sel){const s=APP.divSched[sel.dataset.dfreq]=APP.divSched[sel.dataset.dfreq]||{};s.freq=sel.value;renderPort();}});
 document.addEventListener('click',e=>{
   let x;
   if(x=e.target.closest('[data-delstx]')){APP.stockTx=APP.stockTx.filter(t=>t.id!==x.dataset.delstx);renderPort();renderWealth();}
@@ -884,6 +1079,13 @@ document.addEventListener('click',e=>{
   else if(x=e.target.closest('[data-delprop]')){if(confirm('ลบ?')){APP.props=APP.props.filter(p=>p.id!==x.dataset.delprop);renderProp();renderWealth();}}
   else if(x=e.target.closest('[data-astadd]')){const k=x.dataset.astadd;const nm={gbx:'กบข.',coop:'สหกรณ์',gold:'ทอง'}[k];const v=prompt(`เติมเงินต้น ${nm} (บ.) — เช่นเงินหักเดือนนี้\nใส่ค่าลบเพื่อถอน:`);if(v!==null&&v.trim()!==''){const amt=num(v);APP[k].value+=amt;APP[k].cost+=amt;renderPort();renderWealth();}}
   else if(x=e.target.closest('[data-r]')){wRange=x.dataset.r;renderWealth();}
+  else if(e.target.closest&&e.target.closest('#btnGoal')){const v=prompt('เป้าหมายความมั่งคั่งสุทธิ (บ.) — ใส่ 0 เพื่อซ่อน:',APP.goal||2000000);if(v!==null){APP.goal=num(v);renderWealth();}}
+  else if(e.target.closest&&e.target.closest('#alertClose')){alertsHidden=true;checkAlerts();}
+  else if(e.target.closest&&e.target.closest('#btnNotif')){
+    if(typeof Notification==='undefined'){alert('เบราว์เซอร์นี้ไม่รองรับแจ้งเตือน (iPhone ต้องเพิ่มแอปลงหน้าจอโฮมก่อน และ iOS รุ่นเก่าอาจไม่รองรับ) — แต่แถบ 🔔 ในแอปยังทำงานปกติ');}
+    else if(Notification.permission==='granted'){alert('เปิดแจ้งเตือนอยู่แล้ว ✓ — จะเด้งเมื่อราคาแตะเป้าตอนรีเฟรช/ซิงค์ราคา');}
+    else Notification.requestPermission().then(p=>{if(p==='granted'){alert('เปิดแจ้งเตือนแล้ว ✓');checkAlerts();}});
+  }
   else if(x=e.target.closest('[data-close]')){const t=APP.trades.find(y=>y.id==x.dataset.close);const px=prompt('ราคาออก:');if(px&&!isNaN(parseFloat(px))){t.exit=parseFloat(px);t.closeDate=todayISO();renderJournal();}}
 });
 
@@ -897,6 +1099,7 @@ function renderGuide(){
   <div class="card section-card guide"><h2>☁️ ราคา + สำรองข้อมูล ด้วย Google Sheet</h2>
   <p><b>หัวใจของแอปคือปุ่ม "☁️ Sheet" บนหัว</b> — เชื่อมครั้งเดียว แอปจะ (1) <b>สำรองข้อมูลทั้งหมดขึ้น Google Sheet ชื่อ Wealth ของคุณอัตโนมัติ</b> ทุกครั้งที่แก้ เปิดจากมือถือ/คอมเครื่องไหนก็เห็นข้อมูลชุดเดียวกัน และ (2) <b>ดึงราคาหุ้น / ทอง / ค่าเงิน USD/THB / P/E / กรอบ 52 สัปดาห์ สดจากชีต</b> (สูตร GOOGLEFINANCE) — ค่าเงินอัปเดตเอง ไม่ต้องกรอก</p>
   <p><b>ตั้งค่าครั้งแรก (ทำครั้งเดียว ~2 นาที):</b> เปิด Google Sheet ชื่อ <b>Wealth</b> → เมนู Extensions → Apps Script → วางโค้ดจากไฟล์ <b>Wealth-AppsScript-Code.gs</b> → Save → Deploy → New deployment → Web app (Execute as: Me · Who has access: Anyone) → ก๊อป URL ลงท้าย /exec → กดปุ่ม ☁️ Sheet ในแอป วาง URL แล้วเชื่อม</p>
+  <p><b>📒 สมุดบัญชี Raw Data ในชีต:</b> ทุกครั้งที่แอปเซฟ ระบบเขียนข้อมูลออกมาเป็นตารางอ่านง่ายในชีตด้วย (เหมือนแอปสุขภาพที่ export ข้อมูลดิบ) — แท็บ <b>"รายรับรายจ่าย"</b>, <b>"ซื้อขายหุ้น"</b>, <b>"มูลค่าสุทธิ"</b>, <b>"Watchlist"</b> เปิดบนมือถือ/คอมดู กรอง/หายอด/ทำ pivot เองได้ · ⚠️ แท็บพวกนี้อ่านอย่างเดียว แก้ข้อมูลจริงให้แก้ในแอป (แก้ในชีตแอปไม่รับ + ถูกเขียนทับรอบถัดไป)</p>
   <p class="gnote">ราคาจาก GOOGLEFINANCE ดีเลย์ ~20 นาที (ไม่ใช่เรียลไทม์วินาทีต่อวินาที) · ต้องเปิดแอปในเบราว์เซอร์จริง ไม่ใช่โหมดพรีวิว</p></div>
 
   <div class="card section-card guide"><h2>🔢 ตัวเลขมาจากไหน & การเก็บข้อมูล</h2>
@@ -905,7 +1108,7 @@ function renderGuide(){
 
   <div class="card section-card guide"><h2>✍️ วิธีใช้แต่ละแท็บ</h2>
   <p><b>🏆 ความมั่งคั่ง</b> — ไม่ต้องกรอก รวมให้เอง = ทุกสินทรัพย์ + เงินสด + ส่วนของสินทรัพย์ − หนี้ · กราฟบันทึกอัตโนมัติทุกวันที่เปิด เลือกช่วง 1 สัปดาห์–ตั้งแต่เริ่ม · การ์ดบน = มูลค่าสุทธิ, ถัดมา = กำไรรวม + เปลี่ยนแปลงเดือนล่าสุด, ถัดมา = แยกตามชนิด (กบข./สหกรณ์/ทอง/หุ้น/เงินสด/สินทรัพย์) · สุขภาพการเงิน (คะแนน 0–100 + อัตราส่วนหลัก) อยู่ล่างสุด</p>
-  <p><b>📊 พอร์ตลงทุน</b> — การ์ดบนสุด "สรุปต้นทุน-ผลตอบแทน" 2 แถว: <i>แถวแรก</i> มูลค่ารวมปัจจุบัน · ต้นทุนรวม · กำไร(จากราคา) · ปันผลที่คาดหวัง/ปี · <i>แถวสอง</i> กำไรจากค่าเงิน · ดอกเบี้ยรับปีนี้ · ภาษีปันผล(ประมาณ) · ค่าธรรมเนียมซื้อขายหุ้น (ดอกเบี้ย/ภาษีดึงจากรายรับ-รายจ่าย, ค่าธรรมเนียมดึงจากบันทึกซื้อ-ขาย) · กล่องถัดมารวม กบข./สหกรณ์/ทอง (กด "+ เติม" ทุกเดือน) กับกราฟมูลค่าตามชนิด/กลุ่ม · <b>หุ้นเป็นระบบบันทึกซื้อ-ขาย</b>: "+ บันทึกซื้อ/ขาย" ใส่วันที่/ซื้อหรือขาย/สัญลักษณ์/สกุล/จำนวน/ราคา/ค่าเงินตอนเทรด(USD กรอกเอง)/ค่าธรรมเนียม → ได้ต้นทุนเฉลี่ย + กำไรอัตโนมัติ · ปันผลไม่ต้องกรอก มีข้อมูลให้ · รายการซื้อ-ขายเก็บ & ดูย้อนหลังได้ในชีต Google (แท็บ STATE)</p>
+  <p><b>📊 พอร์ตลงทุน</b> — การ์ดบนสุด "สรุปต้นทุน-ผลตอบแทน" 2 แถว: <i>แถวแรก</i> มูลค่ารวมปัจจุบัน · ต้นทุนรวม · กำไร(จากราคา) · ปันผลที่คาดหวัง/ปี · <i>แถวสอง</i> กำไรจากค่าเงิน · ดอกเบี้ยรับปีนี้ · ภาษีปันผล(ประมาณ) · ค่าธรรมเนียมซื้อขายหุ้น (ดอกเบี้ย/ภาษีดึงจากรายรับ-รายจ่าย, ค่าธรรมเนียมดึงจากบันทึกซื้อ-ขาย) · กล่องถัดมารวม กบข./สหกรณ์/ทอง (กด "+ เติม" ทุกเดือน) กับกราฟมูลค่าตามชนิด/กลุ่ม · <b>หุ้นเป็นระบบบันทึกซื้อ-ขาย</b>: "+ บันทึกซื้อ/ขาย" ใส่วันที่/ซื้อหรือขาย/สัญลักษณ์/สกุล/จำนวน/ราคา/ค่าเงินตอนเทรด(USD กรอกเอง)/ค่าธรรมเนียม → ได้ต้นทุนเฉลี่ย + กำไรอัตโนมัติ · ปันผลไม่ต้องกรอก มีข้อมูลให้ · รายการซื้อ-ขายเก็บ & เปิดดูเป็นตารางอ่านง่ายในชีต Google (แท็บ "ซื้อขายหุ้น")</p>
   <p><b>📈 Trading Journal</b> — <b>แผนรายตัว</b>: เพิ่มหุ้นที่สนใจ → แอปคำนวณ "สัญญาณ" จากตำแหน่งราคาในกรอบ 52 สัปดาห์ + P/E เทียบเป้า (เขียว=ช่วงล่างกรอบ, แดง=ใกล้จุดสูง) แล้วคุณพิมพ์ "แผนของฉัน" เอง · <b>สถิติการเทรด</b> (Net P&L, Win Rate, Profit Factor ฯลฯ พร้อมคำอธิบายในปุ่ม ℹ️) จะขึ้นถ้าเปิดส่วน "บันทึกเทรดจริง" แล้วลงไม้ · <b>ปฏิทิน P&L รายวัน</b> ระบายสีวันที่ปิดไม้ (เขียว=กำไร แดง=ขาดทุน) + วันสำคัญข้างหน้า (วันงบ/ขึ้น XD) อยู่ด้วยกัน · ทั้งหมดเป็นข้อมูลประกอบ ไม่ใช่สัญญาณซื้อขาย</p>
   <p><b>💸 รายรับ-รายจ่าย</b> — <b>นับรอบตามวันเงินเดือน</b> (ลงเงินเดือนวันไหน = เริ่มรอบนั้น) · จดทีละรายการ เพิ่มหมวดเองได้ (+หมวด) · จ่ายบัตรเครดิต = ใส่วันครบกำหนด+งวด → กลายเป็น "หนี้ที่ต้องชำระ" ในรอบที่ครบกำหนด · กราฟหมวด+วิธีจ่าย (มี %) · Waterfall "เงินเดือนไหลไปไหน" (รายรับ → จ่ายสด → ออม → หนี้ → คงเหลือ พร้อม % ของรายรับ) + เทียบหลายรอบ (3/6/12/60)</p>
   <p><b>🏠 สินทรัพย์</b> — บ้าน/คอนโด/ที่ดิน/รถ ใส่มูลค่า + หนี้คงเหลือ (ถ้ายังผ่อน) → ระบบคิด "ส่วนของเรา" = มูลค่า − หนี้ นับเข้าความมั่งคั่ง (ตีเป็นสินทรัพย์ได้แม้ยังผ่อน) · ยอดผ่อนต่อเดือนของหนี้ก้อนนี้ไปใส่ในแท็บรายรับ-รายจ่ายเพื่อคิดภาระหนี้ (DTI)</p></div>
@@ -925,7 +1128,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 $('btnExport').onclick=()=>{const b=new Blob([JSON.stringify(APP,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ศูนย์การเงิน-ข้อมูล.json';a.click();};
 $('btnImport').onclick=()=>$('fileImport').click();
 $('fileImport').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d&&d.gbx){APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),d);initInputs();renderers[document.querySelector('.tab.on').dataset.tab]();if(APP.priceSheetUrl)fetchPrices();}else alert('ไฟล์ไม่ถูกต้อง');}catch{alert('อ่านไฟล์ไม่ได้');}};rd.readAsText(f);};
-$('btnReset').onclick=()=>{if(confirm('ล้างข้อมูลทั้งหมดเริ่มใหม่? (Export เก็บก่อนถ้ายังไม่เซฟ)')){try{localStorage.removeItem('kornFinanceV1');localStorage.removeItem('kornSyncUrl');}catch(e){}SYNC_URL='';cloudBadge();APP={owner:'คุณ',fx:33.62,cashStart:0,priceSheetUrl:'',journalSheetUrl:'',syncUrl:'',priceUpdated:'',history:[],gbx:{value:0,cost:0,note:''},coop:{value:0,cost:0,note:''},gold:{value:0,cost:0,note:''},priceNow:{},divYield:{},symGroup:{},stockTx:[],watch:[],trades:[],cats:JSON.parse(JSON.stringify(DEFAULT_APP.cats)),tx:[],props:[]};initInputs();renderWealth();document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('on',i===0));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-wealth'));}};
+$('btnReset').onclick=()=>{if(confirm('ล้างข้อมูลทั้งหมดเริ่มใหม่? (Export เก็บก่อนถ้ายังไม่เซฟ)')){try{localStorage.removeItem('kornFinanceV1');localStorage.removeItem('kornSyncUrl');}catch(e){}SYNC_URL='';cloudBadge();APP={owner:'คุณ',fx:33.62,cashStart:0,goal:0,divSched:{},alerted:{},priceSheetUrl:'',journalSheetUrl:'',syncUrl:'',priceUpdated:'',history:[],gbx:{value:0,cost:0,note:''},coop:{value:0,cost:0,note:''},gold:{value:0,cost:0,note:''},priceNow:{},divYield:{},symGroup:{},stockTx:[],watch:[],trades:[],cats:JSON.parse(JSON.stringify(DEFAULT_APP.cats)),tx:[],props:[]};migrateWatch();initInputs();renderWealth();document.querySelectorAll('.tab').forEach((x,i)=>x.classList.toggle('on',i===0));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-wealth'));}};
 $('owner').onclick=()=>{const n=prompt('ชื่อเจ้าของ:',APP.owner);if(n){APP.owner=n.trim();$('owner').textContent=n.trim();}};
 $('fx').addEventListener('input',()=>{APP.fx=parseFloat($('fx').value)||33.62;const c=document.querySelector('.tab.on').dataset.tab;if(renderers[c])renderers[c]();});
 function initInputs(){$('fx').value=APP.fx;$('owner').textContent=APP.owner;if($('feedUrl'))$('feedUrl').value=APP.priceSheetUrl||'';if($('jFeedUrl'))$('jFeedUrl').value=APP.journalSheetUrl||'';if($('cloudUrl'))$('cloudUrl').value=(typeof SYNC_URL!=='undefined'?SYNC_URL:'')||'';}
@@ -937,8 +1140,14 @@ let _svT;function scheduleSave(){clearTimeout(_svT);_svT=setTimeout(saveState,60
 addEventListener('input',scheduleSave,true);
 addEventListener('click',scheduleSave,true);
 addEventListener('beforeunload',saveState);
-// อัปเกรด watchlist เก่าที่ยังว่าง (ไม่มีราคา/PE) → ใช้ชุดเริ่มต้นใหม่ที่มีข้อมูลจริง
-function migrateWatch(){try{if(!APP.watch||!APP.watch.length||APP.watch.every(w=>!w.price&&!w.pe))APP.watch=JSON.parse(JSON.stringify(DEFAULT_APP.watch));}catch(e){}}
+// อัปเกรด watchlist เก่า → จักรวาลแบ่งกลุ่ม sector (เก็บ "แผน/เป้า" ที่ผู้ใช้เคยพิมพ์ไว้ตามสัญลักษณ์เดิม)
+function migrateWatch(){try{
+  if(!APP.watch||!APP.watch.length||!APP.watch.some(w=>w.sec)){
+    const old={};(APP.watch||[]).forEach(w=>{old[String(w.sym).toUpperCase()]=w;});
+    APP.watch=JSON.parse(JSON.stringify(DEFAULT_APP.watch));
+    APP.watch.forEach(w=>{const o=old[w.sym];if(o){if(o.plan)w.plan=o.plan;if(o.target)w.target=o.target;if(o.price&&!w.price)w.price=o.price;}});
+  }
+}catch(e){}}
 try{const s=localStorage.getItem('kornFinanceV1');if(s){const d=JSON.parse(s);if(d&&d.gbx)APP=Object.assign(JSON.parse(JSON.stringify(DEFAULT_APP)),d);}}catch(e){}
 migrateWatch();
 
@@ -954,7 +1163,9 @@ function applyPrices(p){if(!p)return 0;let n=0;Object.keys(p).forEach(k=>{const 
   else if(k==='XAUUSD'){APP.goldSpot=v;n++;}
   else if(k.indexOf('~')>0){const[sym,f]=k.split('~');const field=WFIELD[f];if(!field)return;(APP.watch||[]).forEach(w=>{if((w.sym||'').toUpperCase()===sym.toUpperCase())w[field]=v;});}
   else{APP.priceNow[k]=v;(APP.watch||[]).forEach(w=>{if((w.sym||'').toUpperCase()===k)w.price=v;});n++;}});
-  if(n){const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}return n;}
+  if(n){const d=new Date();APP.priceUpdated=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+  try{processDividends();checkAlerts();}catch(e){}
+  return n;}
 function rerender(){const cur=document.querySelector('.tab.on');if(cur&&renderers[cur.dataset.tab])renderers[cur.dataset.tab]();}
 // ดึง state + ราคา จากชีต (GET)
 async function cloudPull(){if(!SYNC_URL){cloudStatus('ยังไม่ได้ใส่ URL');return false;}_pulling=true;cloudStatus('⏳ กำลังดึงจากชีต…');try{
@@ -985,9 +1196,11 @@ $('cloudOff').onclick=()=>{SYNC_URL='';try{localStorage.removeItem('kornSyncUrl'
 
 initInputs();
 cloudBadge();
+processDividends();   // เช็กปันผลที่ถึงวัน XD แล้วบันทึกให้
 if(SYNC_URL)cloudPull();
 else if(APP.priceSheetUrl)fetchPrices();
 renderWealth();
+checkAlerts();        // เช็กราคาแตะเป้าจากข้อมูลล่าสุดที่เซฟไว้
 </script>
 </body>
 </html>
